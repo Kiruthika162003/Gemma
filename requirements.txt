@@ -1,3 +1,5 @@
 streamlit
 gemma
-jax[cpu]  # Or jax[cuda11_pip] for GPU if needed
+jax[cpu]  # Replace with jax[cuda11_pip] if running on GPU
+etils
+kauldron
