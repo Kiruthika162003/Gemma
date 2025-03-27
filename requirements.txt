@@ -1,0 +1,3 @@
+streamlit
+gemma
+jax[cpu]  # Or jax[cuda11_pip] for GPU if needed
