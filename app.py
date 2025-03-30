@@ -62,49 +62,47 @@ Tom said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Remove raw prompt echo if present
+    # Clean up formatting and remove bold artifacts
     full_reply = re.sub(r"(?is)you are gemma.*?tom said: \".*?\"", "", full_reply).strip()
+    full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
     tabs = st.tabs(["🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
 
     with tabs[0]:
         guess = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(guess.group(1).strip() if guess else "Not guessed by Gemma.")
+        st.markdown(guess.group(1).strip())
 
     with tabs[1]:
-        quote = re.search(r"Motivational quote:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(quote.group(1).strip() if quote else "No motivational quote found.")
+        quote = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        st.markdown(quote.group(2).strip())
 
     with tabs[2]:
-        reason = re.search(r"Failure analysis:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(reason.group(1).strip() if reason else "No failure analysis provided.")
+        reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        st.markdown(reason.group(2).strip())
 
     with tabs[3]:
-        lessons = re.findall(r"Trap lessons:(.*?)Tactical tips:|Trap lessons:(.*?)Jerry's escape:", full_reply, re.IGNORECASE | re.DOTALL)
-        combined_lessons = "\n".join([l for pair in lessons for l in pair if l])
-        st.markdown(combined_lessons.strip() if combined_lessons else "No lessons extracted.")
+        lessons = re.findall(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        combined_lessons = "\n".join([l[1] for l in lessons if l])
+        st.markdown(combined_lessons.strip())
 
     with tabs[4]:
-        escape = re.search(r"Jerry's escape:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(escape.group(1).strip() if escape else "No comic escape story.")
+        escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        st.markdown(escape.group(2).strip())
 
     with tabs[5]:
-        tips = re.search(r"Tactical tips:(.*?)(Chart|Weaknesses|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        st.markdown(tips.group(1).strip() if tips else "No tactical tips provided.")
+        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        st.markdown(tips.group(2).strip())
 
     with tabs[6]:
         chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line or "Weaknesses:" in line), None)
         if chart_line:
             st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[:=]\s?(\d+)", chart_line)
-            if chart_data:
-                labels, values = zip(*[(label, int(value)) for label, value in chart_data])
-                fig, ax = plt.subplots()
-                ax.barh(labels, values, color='skyblue')
-                ax.set_xlim(0, 100)
-                ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Trap Efficiency Breakdown")
-                st.pyplot(fig)
-        else:
-            st.warning("Gemma didn’t include a chart this time. Try again with more trap detail.")
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[\s:=]+(\d+)", chart_line, re.IGNORECASE)
+            labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
+            fig, ax = plt.subplots()
+            ax.barh(labels, values, color='skyblue')
+            ax.set_xlim(0, 100)
+            ax.set_xlabel("Effectiveness (%)")
+            ax.set_title("Trap Efficiency Breakdown")
+            st.pyplot(fig)
