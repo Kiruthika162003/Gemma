@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import re
 import time
+import random
 
 # Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
@@ -71,45 +72,36 @@ Tom said: "{user_input}"
 
     with tabs[0]:
         guess = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if guess:
-            st.markdown(guess.group(1).strip())
+        st.markdown(guess.group(1).strip() if guess else "Gemma is still pondering the episode...")
 
     with tabs[1]:
         quote = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if quote:
-            st.markdown(quote.group(2).strip())
+        st.markdown(quote.group(2).strip() if quote else "Hang in there Tom! Gemma believes in you.")
 
     with tabs[2]:
         reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if reason:
-            st.markdown(reason.group(2).strip())
+        st.markdown(reason.group(2).strip() if reason else "Gemma is still reviewing your trap footage.")
 
     with tabs[3]:
         lessons = re.findall(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         combined_lessons = "\n".join([l[1] for l in lessons if l])
-        if combined_lessons:
-            st.markdown(combined_lessons.strip())
+        st.markdown(combined_lessons.strip() if combined_lessons else "Your lesson report is still uploading from the cartoon lab.")
 
     with tabs[4]:
         escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if escape:
-            st.markdown(escape.group(2).strip())
+        st.markdown(escape.group(2).strip() if escape else "No animated escape yet, Tom! Try describing it better.")
 
     with tabs[5]:
         tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if tips:
-            st.markdown(tips.group(2).strip())
+        st.markdown(tips.group(2).strip() if tips else "Gemma’s strategic file is still compiling. Try again.")
 
     with tabs[6]:
-        chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line or "Weaknesses:" in line), None)
-        if chart_line:
-            st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[\s:=]+(\d+)", chart_line, re.IGNORECASE)
-            if chart_data:
-                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
-                fig, ax = plt.subplots()
-                ax.barh(labels, values, color='skyblue')
-                ax.set_xlim(0, 100)
-                ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Trap Efficiency Breakdown")
-                st.pyplot(fig)
+        st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
+        skills = ["Speed", "Stealth", "Timing", "Trap Quality", "Cheese Placement"]
+        values = [random.randint(20, 90) for _ in skills]
+        fig, ax = plt.subplots()
+        ax.barh(skills, values, color='skyblue')
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Effectiveness (%)")
+        ax.set_title("Trap Efficiency Breakdown")
+        st.pyplot(fig)
