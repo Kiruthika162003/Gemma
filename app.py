@@ -67,7 +67,7 @@ Tom said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "📊 Chart"])
 
     with tabs[0]:
         st.markdown(full_reply)
