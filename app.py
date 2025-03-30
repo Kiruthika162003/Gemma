@@ -82,7 +82,7 @@ Tom said: "{user_input}"
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|, weakness_block.group(1))
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality, weakness_block.group(1))
             if chart_data:
                 labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
