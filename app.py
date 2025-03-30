@@ -67,7 +67,7 @@ Tom said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess","📊 Chart"])
 
     with tabs[0]:
         st.markdown(full_reply)
@@ -78,16 +78,6 @@ Tom said: "{user_input}"
             st.markdown(ep.group(1).strip())
 
     with tabs[2]:
-        mot = re.search(r"(Motivational quote|Motivation quote):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if mot:
-            st.markdown(mot.group(2).strip())
-
-    with tabs[3]:
-        reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if reason:
-            st.markdown(reason.group(2).strip())
-
-    with tabs[4]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
