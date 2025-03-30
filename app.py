@@ -29,7 +29,7 @@ if user_input:
             progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
             time.sleep(0.5)
 
-        # Structured prompt
+        # Structured prompt (cheese strategy removed)
         prompt = f"""
 You are Gemma, Tom's AI coach. Respond ONLY with a structured, witty breakdown:
 
@@ -67,7 +67,7 @@ Tom said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
 
     with tabs[0]:
         st.markdown(full_reply)
@@ -77,13 +77,36 @@ Tom said: "{user_input}"
         if ep:
             st.markdown(ep.group(1).strip())
 
-
     with tabs[2]:
+        mot = re.search(r"(Motivational quote|Motivation quote):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if mot:
+            st.markdown(mot.group(2).strip())
+
+    with tabs[3]:
+        reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if reason:
+            st.markdown(reason.group(2).strip())
+
+    with tabs[4]:
+        lesson_match = re.search(r"(Smart trap lessons|Trap lessons|Lessons):(.*?)(Jerry's escape comic|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if lesson_match:
+            st.markdown(lesson_match.group(2).strip())
+
+    with tabs[5]:
+        escape = re.search(r"(Jerry's escape comic|Comic escape):(.*?)(Tactical tips|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if escape:
+            st.markdown(escape.group(2).strip())
+
+    with tabs[6]:
+        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if tips:
+            st.markdown(tips.group(2).strip())
+
+    with tabs[7]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        
         if weakness_block:
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)=\s*(\d+)", weakness_block.group(1))
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)[\s:=]+(\d+)", weakness_block.group(1))
             if chart_data:
                 labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
