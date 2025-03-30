@@ -64,6 +64,7 @@ with tab2:
 
     if "gemini_model" not in st.session_state:
         st.session_state.gemini_model = genai.GenerativeModel("gemini-pro")
+        st.session_state.gemini_chat = st.session_state.gemini_model.start_chat()
 
     if "gemini_history" not in st.session_state:
         st.session_state.gemini_history = []
@@ -78,7 +79,7 @@ with tab2:
         st.session_state.gemini_history.append(("user", gemini_input))
 
         try:
-            response = st.session_state.gemini_model.generate_content(gemini_input)
+            response = st.session_state.gemini_chat.send_message(gemini_input)
             reply = response.text
         except Exception as e:
             reply = f"Gemini's circuits shorted: {e}"
