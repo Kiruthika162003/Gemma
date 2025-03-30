@@ -71,38 +71,45 @@ Tom said: "{user_input}"
 
     with tabs[0]:
         guess = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(guess.group(1).strip())
+        if guess:
+            st.markdown(guess.group(1).strip())
 
     with tabs[1]:
         quote = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(quote.group(2).strip())
+        if quote:
+            st.markdown(quote.group(2).strip())
 
     with tabs[2]:
         reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(reason.group(2).strip())
+        if reason:
+            st.markdown(reason.group(2).strip())
 
     with tabs[3]:
         lessons = re.findall(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         combined_lessons = "\n".join([l[1] for l in lessons if l])
-        st.markdown(combined_lessons.strip())
+        if combined_lessons:
+            st.markdown(combined_lessons.strip())
 
     with tabs[4]:
         escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(escape.group(2).strip())
+        if escape:
+            st.markdown(escape.group(2).strip())
 
     with tabs[5]:
         tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        st.markdown(tips.group(2).strip())
+        if tips:
+            st.markdown(tips.group(2).strip())
 
     with tabs[6]:
         chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line or "Weaknesses:" in line), None)
         if chart_line:
             st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
             chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[\s:=]+(\d+)", chart_line, re.IGNORECASE)
-            labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
-            fig, ax = plt.subplots()
-            ax.barh(labels, values, color='skyblue')
-            ax.set_xlim(0, 100)
-            ax.set_xlabel("Effectiveness (%)")
-            ax.set_title("Trap Efficiency Breakdown")
-            st.pyplot(fig)
+            if chart_data:
+                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
+                fig, ax = plt.subplots()
+                ax.barh(labels, values, color='skyblue')
+                ax.set_xlim(0, 100)
+                ax.set_xlabel("Effectiveness (%)")
+                ax.set_title("Trap Efficiency Breakdown")
+                st.pyplot(fig)
