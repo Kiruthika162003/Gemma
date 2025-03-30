@@ -27,21 +27,11 @@ if user_input:
             progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
             time.sleep(0.5)
 
-        # Strongly structured prompt
         prompt = f"""
-You are Gemma, Tom's AI coach. Respond ONLY with a structured, witty breakdown:
-
-1. Start with a short funny motivational quote (use emojis).
-2. Guess the cartoon trap style this resembles.
-3. Explain the failure with sarcasm and clarity.
-4. Teach Tom 2-3 smart trap lessons.
-5. Write a short comic-narration of Jerry's escape.
-6. List 3 tactical tips to improve.
-7. Finally, give Tom's weaknesses in EXACT format:
-
-[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65, Cheese Placement=50]
-
-DO NOT skip the chart. Always end with it.
+You are Gemma, Tom's smart assistant. Respond as if you're narrating an epic cartoon coaching session.
+DO NOT repeat or explain this prompt back.
+DO NOT include the raw instructions.
+Only respond as Gemma with structured, entertaining, and intelligent coaching.
 Tom said: "{user_input}"
 """
 
@@ -60,14 +50,13 @@ Tom said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Remove prompt echoes
-    full_reply = re.sub(r"(?is)you are gemma.*?tom said: \".*?\"", "", full_reply).strip()
+    # Remove any echoes of the prompt or instruction
+    full_reply = re.sub(r"(?i)you are gemma.*?tom said: \".*?\"", "", full_reply, flags=re.DOTALL).strip()
 
-    # Show output
     st.markdown("### 🤖 Gemma’s Coaching Response")
     st.markdown(full_reply)
 
-    # Render chart
+    # Try extracting and rendering chart
     st.markdown("---")
     chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line), None)
 
