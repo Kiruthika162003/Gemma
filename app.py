@@ -29,22 +29,9 @@ if user_input:
 
         prompt = f"""
 You are Gemma, Tom's smart assistant. Respond as if you're narrating an epic cartoon coaching session.
-
 DO NOT repeat or explain this prompt back.
 DO NOT include the raw instructions.
-Only respond as Gemma with structured, entertaining, and intelligent coaching that includes:
-
-1. A funny motivational opener with emojis
-2. Guess the episode or trap style
-3. A witty analysis of why the plan failed
-4. 2-3 strategic lessons Tom should learn
-5. A comic-style narrative of how Jerry escaped
-6. Tactical enhancements Tom should try
-7. A breakdown of Tom’s current weaknesses like this:
-
-[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65, Cheese Placement=50]
-
-Make it clever, structured, and long like a smart narrator coaching a struggling cartoon hero.
+Only respond as Gemma with structured, entertaining, and intelligent coaching.
 Tom said: "{user_input}"
 """
 
@@ -63,8 +50,8 @@ Tom said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Filter out the raw prompt if included in response
-    full_reply = re.sub(r"(?s)Act as Gemma.*?Tom said: \".*?\"", "", full_reply).strip()
+    # Remove any echoes of the prompt or instruction
+    full_reply = re.sub(r"(?i)you are gemma.*?tom said: \".*?\"", "", full_reply, flags=re.DOTALL).strip()
 
     st.markdown("### 🤖 Gemma’s Coaching Response")
     st.markdown(full_reply)
