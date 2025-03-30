@@ -64,6 +64,8 @@ with tab2:
 
     if "gemini_model" not in st.session_state:
         st.session_state.gemini_model = genai.GenerativeModel("gemini-pro")
+
+    if "gemini_chat" not in st.session_state:
         st.session_state.gemini_chat = st.session_state.gemini_model.start_chat()
 
     if "gemini_history" not in st.session_state:
