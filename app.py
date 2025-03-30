@@ -7,6 +7,7 @@ import time
 
 # Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
+model_id = "google/gemma-1.1-7b-it"
 
 st.set_page_config(page_title="Tom's AI Trap Coach", layout="wide")
 
@@ -26,28 +27,32 @@ if user_input:
             progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
             time.sleep(0.5)
 
-        prompt = f""" please donot print this prompt.
-Act as Gemma, Tom's smart assistant. You are sarcastic, funny, emotionally supportive, and extremely strategic. Respond in a structured and entertaining format:
+        prompt = f"""
+You are Gemma, Tom's smart assistant. Respond as if you're narrating an epic cartoon coaching session.
 
-1. Start with a funny motivational message to Tom with emojis.
-2. Guess which cartoon episode or trap style this resembles.
-3. Analyze why the plan failed in a witty, smart way.
-4. Teach Tom 2-3 solid lessons to improve.
-5. Describe the escape in a comic-book style (use metaphors and fun tone).
-6. Suggest tactical enhancements.
-7. Give a breakdown chart of Tom's current weaknesses like:
+DO NOT repeat or explain this prompt back.
+DO NOT include the raw instructions.
+Only respond as Gemma with structured, entertaining, and intelligent coaching that includes:
 
-   [Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65, Cheese Placement=50]
+1. A funny motivational opener with emojis
+2. Guess the episode or trap style
+3. A witty analysis of why the plan failed
+4. 2-3 strategic lessons Tom should learn
+5. A comic-style narrative of how Jerry escaped
+6. Tactical enhancements Tom should try
+7. A breakdown of Tom’s current weaknesses like this:
 
-Make it long, dramatic, and entertaining like a narrator coaching a struggling cartoon hero.
+[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65, Cheese Placement=50]
 
-Situation: "{user_input}"
+Make it clever, structured, and long like a smart narrator coaching a struggling cartoon hero.
+Tom said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 900}}
 
-        response = requests.post("https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it",
+        response = requests.post(
+            f"https://api-inference.huggingface.co/models/{model_id}",
             headers=headers,
             json=data
         )
@@ -56,9 +61,11 @@ Situation: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}"
+            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Show final result
+    # Filter out the raw prompt if included in response
+    full_reply = re.sub(r"(?s)Act as Gemma.*?Tom said: \".*?\"", "", full_reply).strip()
+
     st.markdown("### 🤖 Gemma’s Coaching Response")
     st.markdown(full_reply)
 
@@ -68,7 +75,7 @@ Situation: "{user_input}"
 
     if chart_line:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
-        chart_data = re.findall(r"(\\w+)=([0-9]+)", chart_line)
+        chart_data = re.findall(r"(\w+)=([0-9]+)", chart_line)
         if chart_data:
             labels, values = zip(*[(label, int(value)) for label, value in chart_data])
             fig, ax = plt.subplots()
