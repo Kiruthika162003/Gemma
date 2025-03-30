@@ -48,7 +48,7 @@ Tom said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        data = {"inputs": prompt, "parameters": {"max_new_tokens": 900}}
+        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
 
         response = requests.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
@@ -94,10 +94,10 @@ Tom said: "{user_input}"
         st.markdown(tips.group(1).strip() if tips else "No tactical tips provided.")
 
     with tabs[6]:
-        chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line), None)
+        chart_line = next((line for line in full_reply.split("\n") if "[Chart:" in line or "Weaknesses:" in line), None)
         if chart_line:
             st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
-            chart_data = re.findall(r"(\w+)=([0-9]+)", chart_line)
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[:=]\s?(\d+)", chart_line)
             if chart_data:
                 labels, values = zip(*[(label, int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
