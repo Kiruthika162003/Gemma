@@ -68,34 +68,16 @@ Tom said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
 
     with tabs[0]:
-        guess = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(guess.group(1).strip() if guess else "Gemma is still pondering the episode...")
+        st.markdown(full_reply)
 
-    with tabs[1]:
-        quote = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(quote.group(2).strip() if quote else "Hang in there Tom! Gemma believes in you.")
+    for i in range(1, 7):
+        with tabs[i]:
+            st.markdown(full_reply)
 
-    with tabs[2]:
-        reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(reason.group(2).strip() if reason else "Gemma is still reviewing your trap footage.")
-
-    with tabs[3]:
-        lessons = re.findall(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        combined_lessons = "\n".join([l[1] for l in lessons if l])
-        st.markdown(combined_lessons.strip() if combined_lessons else "Your lesson report is still uploading from the cartoon lab.")
-
-    with tabs[4]:
-        escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        st.markdown(escape.group(2).strip() if escape else "No animated escape yet, Tom! Try describing it better.")
-
-    with tabs[5]:
-        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        st.markdown(tips.group(2).strip() if tips else "Gemma’s strategic file is still compiling. Try again.")
-
-    with tabs[6]:
+    with tabs[7]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         skills = ["Speed", "Stealth", "Timing", "Trap Quality", "Cheese Placement"]
         values = [random.randint(20, 90) for _ in skills]
