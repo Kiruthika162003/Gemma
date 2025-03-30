@@ -1,5 +1,4 @@
 streamlit
-gemma
-jax[cpu]  # Replace with jax[cuda11_pip] if running on GPU
-etils
-kauldron
+requests
+google-generativeai
+
