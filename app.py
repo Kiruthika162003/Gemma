@@ -47,7 +47,7 @@ Situation: "{user_input}"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 900}}
 
-        response = requests.post("https://api-inference.huggingface.co/models/google/gemma-1b-it",
+        response = requests.post("https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it",
             headers=headers,
             json=data
         )
