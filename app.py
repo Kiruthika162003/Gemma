@@ -4,7 +4,6 @@ import os
 import matplotlib.pyplot as plt
 import re
 import time
-import random
 
 # Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
@@ -73,17 +72,50 @@ Tom said: "{user_input}"
     with tabs[0]:
         st.markdown(full_reply)
 
-    for i in range(1, 7):
-        with tabs[i]:
-            st.markdown(full_reply)
+    with tabs[1]:
+        ep = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if ep:
+            st.markdown(ep.group(1).strip())
+
+    with tabs[2]:
+        mot = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if mot:
+            st.markdown(mot.group(2).strip())
+
+    with tabs[3]:
+        reason = re.search(r"(Failure analysis|Why it failed):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if reason:
+            st.markdown(reason.group(2).strip())
+
+    with tabs[4]:
+        lesson_match = re.search(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if lesson_match:
+            st.markdown(lesson_match.group(2).strip())
+
+    with tabs[5]:
+        escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if escape:
+            st.markdown(escape.group(2).strip())
+
+    with tabs[6]:
+        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if tips:
+            st.markdown(tips.group(2).strip())
 
     with tabs[7]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
-        skills = ["Speed", "Stealth", "Timing", "Trap Quality", "Cheese Placement"]
-        values = [random.randint(20, 90) for _ in skills]
-        fig, ax = plt.subplots()
-        ax.barh(skills, values, color='skyblue')
-        ax.set_xlim(0, 100)
-        ax.set_xlabel("Effectiveness (%)")
-        ax.set_title("Trap Efficiency Breakdown")
-        st.pyplot(fig)
+        weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if weakness_block:
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[\s:=]+(\d+)", weakness_block.group(1))
+            if chart_data:
+                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
+                fig, ax = plt.subplots()
+                ax.barh(labels, values, color='skyblue')
+                ax.set_xlim(0, 100)
+                ax.set_xlabel("Effectiveness (%)")
+                ax.set_title("Trap Efficiency Breakdown")
+                st.pyplot(fig)
+            else:
+                st.warning("Could not extract chart values from the weaknesses section.")
+        else:
+            st.warning("Gemma didn't provide a weaknesses section.")
