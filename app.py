@@ -48,7 +48,6 @@ Situation: "{user_input}"
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 900}}
 
         response = requests.post("https://api-inference.huggingface.co/models/google/gemma-7b-it",
-,
             headers=headers,
             json=data
         )
