@@ -72,7 +72,15 @@ with tab2:
 
     for message in st.session_state.gemini_chat.history:
         role = "user" if message.role == "user" else "assistant"
-        st.chat_message(role).markdown(" ".join(message.parts))
+        parts = message.parts
+
+        # Convert all parts to string safely
+        if isinstance(parts, list):
+            content = " ".join([p if isinstance(p, str) else str(p) for p in parts])
+        else:
+            content = str(parts)
+
+        st.chat_message(role).markdown(content)
 
     gemini_input = st.chat_input("Alright Gemini, what's the play?", key="gemini_input")
 
