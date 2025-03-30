@@ -63,7 +63,7 @@ with tab2:
     st.subheader("Gemini: Creative Strategy Advisor")
 
     if "gemini_model" not in st.session_state:
-        st.session_state.gemini_model = genai.GenerativeModel("models/gemini-pro")
+        st.session_state.gemini_model = genai.GenerativeModel("models/gemini/gemini-1.5-flash")
 
     if "gemini_history" not in st.session_state:
         st.session_state.gemini_history = []
