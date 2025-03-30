@@ -41,7 +41,7 @@ You are Gemma, Tom's AI coach. Respond ONLY with a structured, witty breakdown:
 6. List 3 tactical tips to improve.
 7. Finally, give Tom's weaknesses in EXACT format:
 
-[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65, Cheese Placement=50]
+[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65]
 
 DO NOT skip the chart. Always end with it.
 Tom said: "{user_input}"
@@ -82,7 +82,7 @@ Tom said: "{user_input}"
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|Cheese Placement)[\s:=]+(\d+)", weakness_block.group(1))
+            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality|, weakness_block.group(1))
             if chart_data:
                 labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
