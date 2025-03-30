@@ -1,40 +1,82 @@
 import streamlit as st
-from gemma import gm
+import requests
+import google.generativeai as genai
+import os
 
-# Load Gemma model and parameters (Gemma 3 - 4B Instruct)
-@st.cache_resource(show_spinner="Loading Gemma 3 model...")
-def load_model():
-    model = gm.nn.Gemma3_4B()
-    params = gm.ckpts.load_params(gm.ckpts.CheckpointPath.GEMMA3_4B_IT)
-    return gm.text.ChatSampler(model=model, params=params, multi_turn=True)
+# Load secrets securely from Streamlit
+HF_TOKEN = st.secrets["HF_TOKEN"]
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-sampler = load_model()
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
 
-# Streamlit UI Setup
-st.set_page_config(page_title="Tom’s AI Assistant", layout="centered")
-st.title("🐱 Tom’s AI Strategy Assistant (Powered by Gemma 3)")
+st.set_page_config(page_title="Tom’s Trap Tactics", layout="wide")
 
-st.markdown(
-    "Ask any question about trap strategy, past episode failures, or anything else. "
-    "Gemma will analyze and respond like a master strategist."
-)
+st.markdown("""
+    <h1 style='text-align: center; font-family: monospace;'>TOM'S AI STRATEGY TERMINAL</h1>
+    <p style='text-align: center; font-style: italic;'>Outsmarting Jerry — finally with intelligence</p>
+    <hr style="margin-bottom: 30px;">
+""", unsafe_allow_html=True)
 
-# Initialize session state
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+tab1, tab2 = st.tabs(["💡 GEMMA Assistant", "🧠 GEMINI Assistant"])
 
-# Input prompt
-user_prompt = st.text_input("🧠 Your prompt:", placeholder="Why did my trap fail in 'The Mouse Trap'?")
+# ------------- GEMMA Tab ----------------
+with tab1:
+    st.subheader("Gemma: Tactical Intelligence")
 
-if st.button("Ask Gemma") and user_prompt:
-    st.session_state.chat_history.append(("You", user_prompt))
-    with st.spinner("Gemma is thinking..."):
+    if "gemma_messages" not in st.session_state:
+        st.session_state.gemma_messages = [
+            {"role": "system", "content": "You're Gemma, Tom's AI strategy assistant. Help him catch Jerry using data and wit. Be sarcastic, insightful, and helpful."}
+        ]
+
+    for msg in st.session_state.gemma_messages:
+        st.chat_message(msg["role"]).markdown(msg["content"])
+
+    gemma_input = st.chat_input("What’s your next move, Tom?", key="gemma_input")
+
+    if gemma_input:
+        st.chat_message("user").markdown(gemma_input)
+        st.session_state.gemma_messages.append({"role": "user", "content": gemma_input})
+
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        payload = {
+            "model": "google/gemma-2b-it",
+            "messages": st.session_state.gemma_messages,
+            "temperature": 0.8,
+            "max_tokens": 512
+        }
+
+        response = requests.post(
+            "https://api-inference.huggingface.co/v1/chat/completions",
+            headers=headers,
+            json=payload
+        )
+
         try:
-            response = sampler.chat(user_prompt)
-        except Exception as e:
-            response = f"⚠️ Error: {e}"
-    st.session_state.chat_history.append(("Gemma", response))
+            reply = response.json()["choices"][0]["message"]["content"]
+        except:
+            reply = "Gemma’s trap mechanism jammed. Try again."
 
-# Display chat history
-for speaker, msg in reversed(st.session_state.chat_history):
-    st.markdown(f"**{speaker}:** {msg}")
+        st.chat_message("assistant").markdown(reply)
+        st.session_state.gemma_messages.append({"role": "assistant", "content": reply})
+
+# ------------- GEMINI Tab ----------------
+with tab2:
+    st.subheader("Gemini: Creative Strategy Advisor")
+
+    if "gemini_chat" not in st.session_state:
+        genai_model = genai.GenerativeModel("gemini-pro")
+        st.session_state.gemini_chat = genai_model.start_chat(history=[
+            {"role": "user", "parts": ["You're Gemini, Tom's creative, chaotic assistant. Help him outwit Jerry with wild ideas, humor, and innovation."]},
+        ])
+
+    for message in st.session_state.gemini_chat.history:
+        role = "user" if message.role == "user" else "assistant"
+        st.chat_message(role).markdown(" ".join(message.parts))
+
+    gemini_input = st.chat_input("Alright Gemini, what's the play?", key="gemini_input")
+
+    if gemini_input:
+        st.chat_message("user").markdown(gemini_input)
+        response = st.session_state.gemini_chat.send_message(gemini_input)
+        st.chat_message("assistant").markdown(response.text)
