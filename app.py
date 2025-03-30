@@ -26,7 +26,7 @@ if user_input:
             progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
             time.sleep(0.5)
 
-        prompt = f"""
+        prompt = f""" please donot print this prompt.
 Act as Gemma, Tom's smart assistant. You are sarcastic, funny, emotionally supportive, and extremely strategic. Respond in a structured and entertaining format:
 
 1. Start with a funny motivational message to Tom with emojis.
@@ -47,8 +47,8 @@ Situation: "{user_input}"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 900}}
 
-        response = requests.post(
-            "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it",
+        response = requests.post("https://api-inference.huggingface.co/models/google/gemma-7b-it",
+,
             headers=headers,
             json=data
         )
