@@ -40,20 +40,18 @@ with tab1:
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         payload = {
-            "model": "google/gemma-2b-it",
-            "messages": st.session_state.gemma_messages,
-            "temperature": 0.8,
-            "max_tokens": 512
+            "inputs": gemma_input,
+            "parameters": {"max_new_tokens": 300}
         }
 
         response = requests.post(
-            "https://api-inference.huggingface.co/v1/chat/completions",
+            "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it",
             headers=headers,
             json=payload
         )
 
         try:
-            reply = response.json()["choices"][0]["message"]["content"]
+            reply = response.json()[0]['generated_text']
         except:
             reply = "Gemma’s trap mechanism jammed. Try again."
 
@@ -64,27 +62,26 @@ with tab1:
 with tab2:
     st.subheader("Gemini: Creative Strategy Advisor")
 
-    if "gemini_chat" not in st.session_state:
-        genai_model = genai.GenerativeModel("gemini-pro")
-        st.session_state.gemini_chat = genai_model.start_chat(history=[
-            {"role": "user", "parts": ["You're Gemini, Tom's creative, chaotic assistant. Help him outwit Jerry with wild ideas, humor, and innovation."]},
-        ])
+    if "gemini_model" not in st.session_state:
+        st.session_state.gemini_model = genai.GenerativeModel("models/gemini-pro")
 
-    for message in st.session_state.gemini_chat.history:
-        role = "user" if message.role == "user" else "assistant"
-        parts = message.parts
+    if "gemini_history" not in st.session_state:
+        st.session_state.gemini_history = []
 
-        # Convert all parts to string safely
-        if isinstance(parts, list):
-            content = " ".join([p if isinstance(p, str) else str(p) for p in parts])
-        else:
-            content = str(parts)
-
-        st.chat_message(role).markdown(content)
+    for role, message in st.session_state.gemini_history:
+        st.chat_message(role).markdown(message)
 
     gemini_input = st.chat_input("Alright Gemini, what's the play?", key="gemini_input")
 
     if gemini_input:
         st.chat_message("user").markdown(gemini_input)
-        response = st.session_state.gemini_chat.send_message(gemini_input)
-        st.chat_message("assistant").markdown(response.text)
+        st.session_state.gemini_history.append(("user", gemini_input))
+
+        try:
+            response = st.session_state.gemini_model.generate_content(gemini_input)
+            reply = response.text
+        except Exception as e:
+            reply = f"Gemini's circuits shorted: {e}"
+
+        st.chat_message("assistant").markdown(reply)
+        st.session_state.gemini_history.append(("assistant", reply))
