@@ -67,7 +67,7 @@ Tom said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📚 Lessons", "🎭 Comic Escape", "🛠️ Tactics", "📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess", "💬 Motivation", "📉 Why It Failed", "📊 Chart"])
 
     with tabs[0]:
         st.markdown(full_reply)
@@ -88,21 +88,6 @@ Tom said: "{user_input}"
             st.markdown(reason.group(2).strip())
 
     with tabs[4]:
-        lesson_match = re.search(r"(Smart trap lessons|Trap lessons|Lessons):(.*?)(Jerry's escape comic|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if lesson_match:
-            st.markdown(lesson_match.group(2).strip())
-
-    with tabs[5]:
-        escape = re.search(r"(Jerry's escape comic|Comic escape):(.*?)(Tactical tips|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if escape:
-            st.markdown(escape.group(2).strip())
-
-    with tabs[6]:
-        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if tips:
-            st.markdown(tips.group(2).strip())
-
-    with tabs[7]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
