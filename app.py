@@ -81,6 +81,7 @@ Tom said: "{user_input}"
     with tabs[2]:
         st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        
         if weakness_block:
             chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)=\s*(\d+)", weakness_block.group(1))
             if chart_data:
