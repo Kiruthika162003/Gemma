@@ -78,7 +78,7 @@ Tom said: "{user_input}"
             st.markdown(ep.group(1).strip())
 
     with tabs[2]:
-        mot = re.search(r"(Motivational quote|Motivation):(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        mot = re.search(r"(Motivational quote|Motivation quote):(.*?)(\n|$)", full_reply, re.IGNORECASE)
         if mot:
             st.markdown(mot.group(2).strip())
 
@@ -88,17 +88,17 @@ Tom said: "{user_input}"
             st.markdown(reason.group(2).strip())
 
     with tabs[4]:
-        lesson_match = re.search(r"(Trap lessons|Lessons):(.*?)(Tactical tips|Jerry's escape|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        lesson_match = re.search(r"(Smart trap lessons|Trap lessons|Lessons):(.*?)(Jerry's escape comic|Comic escape|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if lesson_match:
             st.markdown(lesson_match.group(2).strip())
 
     with tabs[5]:
-        escape = re.search(r"(Jerry's escape|Comic escape):(.*?)(\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        escape = re.search(r"(Jerry's escape comic|Comic escape):(.*?)(Tactical tips|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if escape:
             st.markdown(escape.group(2).strip())
 
     with tabs[6]:
-        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Chart|Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        tips = re.search(r"(Tactical tips|Suggestions):(.*?)(Weaknesses|\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if tips:
             st.markdown(tips.group(2).strip())
 
