@@ -9,21 +9,21 @@ import time
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-st.set_page_config(page_title="Tom vs Jerry: Trap Mastermind", layout="wide")
+st.set_page_config(page_title="CAT vs RAT: Trap Mastermind", layout="wide")
 
 st.markdown("""
     <div style='text-align: center;'>
-        <h1 style='font-family:monospace; font-size: 3em;'>🎯 TOM VS JERRY: TRAP MASTERMIND</h1>
+        <h1 style='font-family:monospace; font-size: 3em;'>🎯 CAT VS RAT: TRAP MASTERMIND</h1>
         <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma — Your comically brilliant strategy assistant</p>
     </div>
-    <hr style="margin-bottom: 30px;">
+    <hr style="margin-botCAT: 30px;">
 """, unsafe_allow_html=True)
 
-user_input = st.chat_input("Tom, describe how Jerry escaped this time!")
+user_input = st.chat_input("CAT, describe how RAT escaped this time!")
 
 if user_input:
-    with st.spinner("Tom, allow me to think... 🧠 Initiating tactical brainwaves..."):
-        progress = st.progress(0, text="Analyzing Jerry’s escape route...")
+    with st.spinner("CAT, allow me to think... 🧠 Initiating tactical brainwaves..."):
+        progress = st.progress(0, text="Analyzing RAT’s escape route...")
 
         for i in range(1, 6):
             progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
@@ -31,20 +31,20 @@ if user_input:
 
         # Structured prompt (cheese strategy removed)
         prompt = f"""
-You are Gemma, Tom's AI coach. Respond ONLY with a structured, witty breakdown:
+You are Gemma, CAT's AI coach. Respond ONLY with a structured, witty breakdown:
 
 1. First, guess the cartoon episode or trap style this resembles. Start with: "Episode guess: <your guess>"
 2. Then provide a short funny motivational quote (use emojis).
 3. Explain the failure with sarcasm and clarity.
-4. Teach Tom 2-3 smart trap lessons.
-5. Write a short comic-narration of Jerry's escape.
+4. Teach CAT 2-3 smart trap lessons.
+5. Write a short comic-narration of RAT's escape.
 6. List 3 tactical tips to improve.
-7. Finally, give Tom's weaknesses in EXACT format:
+7. Finally, give CAT's weaknesses in EXACT format:
 
 [Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65]
 
 DO NOT skip the chart. Always end with it.
-Tom said: "{user_input}"
+CAT said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -63,7 +63,7 @@ Tom said: "{user_input}"
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
     # Clean up formatting and remove bold artifacts
-    full_reply = re.sub(r"(?is)you are gemma.*?tom said: \".*?\"", "", full_reply).strip()
+    full_reply = re.sub(r"(?is)you are gemma.*?CAT said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
@@ -78,7 +78,7 @@ Tom said: "{user_input}"
             st.markdown(ep.group(1).strip())
 
     with tabs[2]:
-        st.markdown("### 📊 Strategy Breakdown: Tom's Weaknesses")
+        st.markdown("### 📊 Strategy Breakdown: CAT's Weaknesses")
         weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
             chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)[\s:=]+(\d+)", weakness_block.group(1))
