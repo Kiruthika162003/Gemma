@@ -67,65 +67,26 @@ PRINCE said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean up formatting
+    # Clean up formatting and remove prompt artifacts
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
-    # Subtabs for sectioned display
-    tabs = st.tabs([
-        "🧾 Full Response",
-        "🔍 Rescue Analysis",
-        "💬 Quote of the Quest",
-        "❌ Why It Failed",
-        "📚 Lessons Learned",
-        "🛠️ Tactical Tips",
-        "📊 Royal Stats"
-    ])
+    # Subtabs for clean sectioned layout
+    tabs = st.tabs(["🧾 Full Response", "🔍 Rescue Analysis", "📊 Royal Stats"])
 
     with tabs[0]:
         st.markdown(full_reply)
 
     with tabs[1]:
         st.markdown("### 🔍 Comic-Narration of the Failed Rescue")
-        narration = re.search(r"(5\..*?narration.*?:\s*)(.*?)(\n6\.|\nList 3|\n7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
+        narration = re.search(r"(?i)(comic[- ]?narration.*?:|Write a short comic-narration.*?\.)(.*?)(\n\n|\n[0-9]|$)", full_reply, re.DOTALL)
         if narration:
-            st.markdown(narration.group(2).strip())
+            story_text = narration.group(2).strip()
+            st.markdown(f"**{story_text}**")
         else:
-            st.warning("Could not extract the rescue narration. Try including how the escape looked.")
+            st.warning("Could not extract the comic-narration from the response.")
 
     with tabs[2]:
-        st.markdown("### 💬 Gemma's Motivational Quote")
-        quote_match = re.search(r"2\..*?(?:(?:inspire PRINCE)|(?:quote)).*?\n+(.*?)\n", full_reply, re.DOTALL | re.IGNORECASE)
-        if quote_match:
-            st.markdown(f"> *{quote_match.group(1).strip()}*")
-        else:
-            st.warning("No quote found. Include a mood in your prompt for more flair!")
-
-    with tabs[3]:
-        st.markdown("### ❌ Analysis of the Failure")
-        fail_match = re.search(r"3\..*?Explain.*?\n+(.*?)(\n4\.|Teach|5\.)", full_reply, re.DOTALL | re.IGNORECASE)
-        if fail_match:
-            st.markdown(fail_match.group(1).strip())
-        else:
-            st.warning("Failure analysis missing. Try to describe what failed in your attempt.")
-
-    with tabs[4]:
-        st.markdown("### 📚 Rescue Lessons for Next Time")
-        lessons_match = re.search(r"4\..*?Teach.*?\n+(.*?)(\n5\.|Write|6\.)", full_reply, re.DOTALL | re.IGNORECASE)
-        if lessons_match:
-            st.markdown(lessons_match.group(1).strip())
-        else:
-            st.warning("Gemma didn't generate rescue lessons this time.")
-
-    with tabs[5]:
-        st.markdown("### 🛠️ Tactical Tips")
-        tips_match = re.search(r"6\..*?List 3.*?\n+(.*?)(\n7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-        if tips_match:
-            st.markdown(tips_match.group(1).strip())
-        else:
-            st.warning("Tips not found. Try asking for specific help in your prompt.")
-
-    with tabs[6]:
         st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
         weakness_block = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
@@ -141,4 +102,4 @@ PRINCE said: "{user_input}"
             else:
                 st.warning("Could not extract values for the chart.")
         else:
-            st.warning("Gemma didn’t provide a weaknesses chart.")
+            st.warning("Gemma didn't include a chart this time.")
