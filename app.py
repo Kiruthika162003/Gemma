@@ -9,11 +9,11 @@ import time
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-st.set_page_config(page_title="Prince vs Dragon Rescue Mastermind", layout="wide")
+st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
 
 st.markdown("""
     <div style='text-align: center;'>
-        <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON RESCUE MASTERMIND</h1>
+        <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON: RESCUE MASTERMIND</h1>
         <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
     </div>
     <hr style="margin-bottom: 30px;">
@@ -71,20 +71,16 @@ PRINCE said: "{user_input}"
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
-    # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🔍 Rescue Analysis", "📊 Royal Stats"])
+    # Subtabs for clean display
+    tabs = st.tabs(["🧾 Full Response", "📖 Tale Guess", "📊 Royal Stats"])
 
     with tabs[0]:
         st.markdown(full_reply)
 
     with tabs[1]:
-        st.markdown("### 🔍 Comic-Narration of the Failed Rescue")
-        narration = re.search(r"(?i)(comic[- ]?narration.*?:|Write a short comic-narration.*?\.)(.*?)(\n\n|\n[0-9]|$)", full_reply, re.DOTALL)
-        if narration:
-            story_text = narration.group(2).strip()
-            st.markdown(f"**{story_text}**")
-        else:
-            st.warning("Could not extract the comic-narration from the response.")
+        ep = re.search(r"Tale Guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if ep:
+            st.markdown(ep.group(1).strip())
 
     with tabs[2]:
         st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
