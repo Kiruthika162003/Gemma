@@ -9,42 +9,47 @@ import time
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-st.set_page_config(page_title="CAT vs RAT: Trap Mastermind", layout="wide")
+st.set_page_config(page_title="Prince vs Dragon Rescue Mastermind", layout="wide")
 
 st.markdown("""
     <div style='text-align: center;'>
-        <h1 style='font-family:monospace; font-size: 3em;'>🎯 CAT VS RAT: TRAP MASTERMIND</h1>
-        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma — Your comically brilliant strategy assistant</p>
+        <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON RESCUE MASTERMIND</h1>
+        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
     </div>
-    <hr style="margin-botCAT: 30px;">
+    <hr style="margin-bottom: 30px;">
 """, unsafe_allow_html=True)
 
-user_input = st.chat_input("CAT, describe how RAT escaped this time!")
+st.markdown("""
+> 🐉 The prince has tried for decades — swords, spells, catapults… always eaten.  
+> But what if **AI** could finally help him rescue the princess?  
+> No more charging blindly. No more failure.  
+> **Meet Prince AI Strategy Assistant** — built with Google’s **Gemma 3**.
+""")
+
+user_input = st.chat_input("PRINCE, describe how the DRAGON foiled your rescue attempt this time!")
 
 if user_input:
-    with st.spinner("CAT, allow me to think... 🧠 Initiating tactical brainwaves..."):
-        progress = st.progress(0, text="Analyzing RAT’s escape route...")
+    with st.spinner("PRINCE, allow me to consult the scrolls of strategy... 🧠 Loading royal tactics..."):
+        progress = st.progress(0, text="Analyzing DRAGON's counter-strategy...")
 
         for i in range(1, 6):
-            progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
+            progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
             time.sleep(0.5)
 
-        # Structured prompt (cheese strategy removed)
         prompt = f"""
-You are Gemma, CAT's AI coach. Respond ONLY with a structured, witty breakdown:
+You are Gemma, PRINCE's AI coach. Respond ONLY with a structured, witty breakdown:
 
-1. First, guess the cartoon episode or trap style this resembles. Start with: "Episode guess: <your guess>"
-2. Then provide a short funny motivational quote (use emojis).
-3. Explain the failure with sarcasm and clarity.
-4. Teach CAT 2-3 smart trap lessons.
-5. Write a short comic-narration of RAT's escape.
-6. List 3 tactical tips to improve.
-7. Finally, give CAT's weaknesses in EXACT format:
-
-[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65]
+1. First, guess the fairytale, game level, or heroic failure this resembles. Start with: "Tale Guess: <your guess>"
+2. Then give a short epic (or ridiculous) quote to inspire PRINCE (use emojis).
+3. Explain the failure with humor, flair, and royal sarcasm.
+4. Teach PRINCE 2-3 clever rescue lessons.
+5. Write a short comic-narration of the failed rescue.
+6. List 3 tactical improvement tips.
+7. Finally, give PRINCE's weaknesses in EXACT format:
+   [Chart: Courage=45, Timing=50, Magic Usage=35, Rescue Planning=60]
 
 DO NOT skip the chart. Always end with it.
-CAT said: "{user_input}"
+PRINCE said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -62,35 +67,39 @@ CAT said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean up formatting and remove bold artifacts
-    full_reply = re.sub(r"(?is)you are gemma.*?CAT said: \".*?\"", "", full_reply).strip()
+    # Clean up formatting and remove prompt artifacts
+    full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess","📊 Chart"])
+    tabs = st.tabs(["🧾 Full Response", "🔍 Rescue Analysis", "📊 Royal Stats"])
 
     with tabs[0]:
         st.markdown(full_reply)
 
     with tabs[1]:
-        ep = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if ep:
-            st.markdown(ep.group(1).strip())
+        st.markdown("### 🔍 Comic-Narration of the Failed Rescue")
+        narration = re.search(r"(?i)(comic[- ]?narration.*?:|Write a short comic-narration.*?\.)(.*?)(\n\n|\n[0-9]|$)", full_reply, re.DOTALL)
+        if narration:
+            story_text = narration.group(2).strip()
+            st.markdown(f"**{story_text}**")
+        else:
+            st.warning("Could not extract the comic-narration from the response.")
 
     with tabs[2]:
-        st.markdown("### 📊 Strategy Breakdown: CAT's Weaknesses")
-        weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
+        weakness_block = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)[\s:=]+(\d+)", weakness_block.group(1))
+            chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", weakness_block.group(1))
             if chart_data:
                 labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
-                ax.barh(labels, values, color='skyblue')
+                ax.barh(labels, values)
                 ax.set_xlim(0, 100)
                 ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Trap Efficiency Breakdown")
+                ax.set_title("Rescue Strategy Breakdown")
                 st.pyplot(fig)
             else:
-                st.warning("Could not extract chart values from the weaknesses section.")
+                st.warning("Could not extract values for the chart.")
         else:
-            st.warning("Gemma didn't provide a weaknesses section.")
+            st.warning("Gemma didn't include a chart this time.")
