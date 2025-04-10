@@ -5,29 +5,27 @@ import matplotlib.pyplot as plt
 import re
 import time
 
-# Secure Token and Model
+# Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-# App Config
+# Page Setup
 st.set_page_config(page_title="Rescue Mastermind", layout="wide")
-
-# Header
 st.title("Rescue Mastermind")
-st.caption("Strategic AI insights for your heroic missions")
+st.caption("Debrief your failed mission. Get strategic, respectful AI guidance for future success.")
 
 # User Input
 user_input = st.chat_input("Describe your failed rescue attempt:")
 
 if user_input:
-    with st.spinner("Analyzing strategy failure..."):
-        progress = st.progress(0, text="Gathering tactical insights...")
+    with st.spinner("Analyzing your strategy..."):
+        progress = st.progress(0, text="Processing...")
 
         for i in range(1, 6):
-            progress.progress(i * 20, text=f"Processing section {i}/5...")
-            time.sleep(0.5)
+            progress.progress(i * 20, text=f"Step {i}/5 - Refining insights...")
+            time.sleep(0.4)
 
-        # Prompt
+        # Prompt with structured coaching
         prompt = f"""
 You are Gemma, PRINCE's AI strategy coach. The prince just attempted a rescue that failed. You must generate a respectful and constructive mission debrief.
 
@@ -55,7 +53,7 @@ Format as:
 PRINCE said: "{user_input}"
 """
 
-        # API Call
+        # Send request
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
 
@@ -69,77 +67,72 @@ PRINCE said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"Gemma could not respond properly: {e}\nRaw response: {response.text}"
+            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean output
+    # Format and clean response
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "")
     full_reply = re.sub(r"\n{3,}", "\n\n", full_reply)
 
-    # Extract sections
-    sections = {
-        "Summary of Attempt": "",
-        "Why It Failed": "",
-        "What Went Well": "",
-        "Strategic Improvement Plan": "",
-        "Recommended Rescue Idea": "",
-        "Rescue Metrics": ""
-    }
-
-    for key in sections:
-        match = re.search(rf"\[{re.escape(key)}\](.*?)(?=\n\[|$)", full_reply, re.DOTALL | re.IGNORECASE)
-        if match:
-            sections[key] = match.group(1).strip()
+    # Extract structured sections
+    section_titles = [
+        "Summary of Attempt",
+        "Why It Failed",
+        "What Went Well",
+        "Strategic Improvement Plan",
+        "Recommended Rescue Idea",
+        "Rescue Metrics"
+    ]
+    extracted_sections = {}
+    for i, title in enumerate(section_titles):
+        pattern = rf"\[{re.escape(title)}\]\s*(.*?)(?=\n\[{re.escape(section_titles[i + 1])}\]|$)" if i < len(section_titles) - 1 else rf"\[{re.escape(title)}\]\s*(.*)"
+        match = re.search(pattern, full_reply, re.DOTALL | re.IGNORECASE)
+        extracted_sections[title] = match.group(1).strip() if match else "_Not found_"
 
     # Tabs
-    tabs = st.tabs([
-        "Full Report",
-        "Summary",
-        "Failure Reason",
-        "Highlights",
-        "Improvements",
-        "Suggestion",
-        "Metrics"
-    ])
+    tab_titles = [
+        "📋 Full Report", "📌 Summary", "⚠️ Why It Failed",
+        "🌟 What Went Well", "🔧 Improvement Plan",
+        "💡 Suggested Strategy", "📊 Rescue Metrics"
+    ]
+    tabs = st.tabs(tab_titles)
 
     with tabs[0]:
-        st.subheader("Full Strategy Report")
+        st.subheader("Full Generated Report")
+        st.info("Below is the full unprocessed output from the strategist.")
         st.markdown(full_reply)
 
     with tabs[1]:
         st.subheader("Summary of Attempt")
-        st.markdown(sections["Summary of Attempt"] or "_Not available_")
+        st.success(extracted_sections["Summary of Attempt"])
 
     with tabs[2]:
         st.subheader("Why It Failed")
-        st.markdown(sections["Why It Failed"] or "_Not available_")
+        st.error(extracted_sections["Why It Failed"])
 
     with tabs[3]:
         st.subheader("What Went Well")
-        st.markdown(sections["What Went Well"] or "_Not available_")
+        st.success(extracted_sections["What Went Well"])
 
     with tabs[4]:
         st.subheader("Improvement Plan")
-        st.markdown(sections["Strategic Improvement Plan"] or "_Not available_")
+        st.warning(extracted_sections["Strategic Improvement Plan"])
 
     with tabs[5]:
-        st.subheader("Suggested Strategy")
-        st.markdown(sections["Recommended Rescue Idea"] or "_Not available_")
+        st.subheader("Recommended Rescue Idea")
+        st.info(extracted_sections["Recommended Rescue Idea"])
 
     with tabs[6]:
         st.subheader("Performance Metrics")
-        chart_section = sections["Rescue Metrics"]
-        if chart_section:
-            chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", chart_section)
-            if chart_data:
-                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
-                fig, ax = plt.subplots()
-                ax.barh(labels, values)
-                ax.set_xlim(0, 100)
-                ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Rescue Performance")
-                st.pyplot(fig)
-            else:
-                st.warning("Could not extract chart data.")
+        chart_section = extracted_sections["Rescue Metrics"]
+        chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", chart_section)
+        if chart_data:
+            labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
+            fig, ax = plt.subplots()
+            ax.barh(labels, values)
+            ax.set_xlim(0, 100)
+            ax.set_xlabel("Effectiveness (%)")
+            ax.set_title("Rescue Strategy Metrics")
+            st.pyplot(fig)
         else:
-            st.info("Metrics were not included in the response.")
+            st.info("Rescue metrics not found or malformed.")
