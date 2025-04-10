@@ -36,28 +36,32 @@ if user_input:
             progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
             time.sleep(0.5)
 prompt = f"""
-You are Gemma, PRINCE's AI coach and royal strategist. Respond ONLY using the following exact structure — no extra text.
+You are Gemma, PRINCE's AI strategy coach. The prince just attempted a rescue that failed. You must generate a respectful and constructive mission debrief.
 
-[Tale Guess]
-<Brief guess about the kind of fairy tale or story this resembles.>
+Use this exact structure:
 
-[Motivational Quote]
-<A short, witty, emoji-friendly quote to inspire the prince.>
+[Summary of Attempt]
+<Acknowledge the prince’s strategy and effort. Describe what he tried, respectfully.>
 
-[Failure Analysis]
-<Explain what went wrong in the rescue attempt with clear, witty reasoning.>
+[Why It Failed]
+<Provide a clear, kind explanation of what didn’t work. Be honest but tactful.>
 
-[Rescue Lessons]
-<Provide 2–3 short, strategic lessons to improve rescue success.>
+[What Went Well]
+<Highlight any parts of the plan that showed courage, creativity, or progress. Encourage him.>
 
-[Tactical Tips]
-<3 short, bullet-point style tactical suggestions.>
+[Strategic Improvement Plan]
+<Give 2–3 action-oriented suggestions to enhance his next rescue attempt. These should sound intelligent, realistic, and valuable.>
 
-[Weakness Chart]
-Format it as: [Chart: Courage=40, Timing=55, Magic Usage=30, Rescue Planning=65]
+[Recommended Rescue Idea]
+<Propose one improved plan or rescue approach he could try next time, based on his strengths. Make it clever and practical.>
+
+[Rescue Metrics]
+Format as:
+[Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
 
 PRINCE said: "{user_input}"
 """
+
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
