@@ -67,11 +67,11 @@ PRINCE said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean formatting
+    # Clean up formatting
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
-    # Create all tabs
+    # Subtabs for sectioned display
     tabs = st.tabs([
         "🧾 Full Response",
         "🔍 Rescue Analysis",
@@ -86,45 +86,44 @@ PRINCE said: "{user_input}"
         st.markdown(full_reply)
 
     with tabs[1]:
-        st.markdown("### 🐉 Comic-Narration of the Failed Rescue")
-        match = re.search(r"(comic[- ]?narration.*?:|5\.\s)(.*?)(6\.|List 3 tactical|7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-        if match:
-            story = match.group(2).strip()
-            st.markdown(f"**{story}**")
+        st.markdown("### 🔍 Comic-Narration of the Failed Rescue")
+        narration = re.search(r"(5\..*?narration.*?:\s*)(.*?)(\n6\.|\nList 3|\n7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
+        if narration:
+            st.markdown(narration.group(2).strip())
         else:
-            st.warning("Could not extract the rescue narration.")
+            st.warning("Could not extract the rescue narration. Try including how the escape looked.")
 
     with tabs[2]:
         st.markdown("### 💬 Gemma's Motivational Quote")
-        quote = re.search(r"2\.\s*(Then)?\s*give a short epic.*?\n(.*?)\n", full_reply, re.DOTALL | re.IGNORECASE)
-        if quote:
-            st.markdown(f"> *{quote.group(2).strip()}*")
+        quote_match = re.search(r"2\..*?(?:(?:inspire PRINCE)|(?:quote)).*?\n+(.*?)\n", full_reply, re.DOTALL | re.IGNORECASE)
+        if quote_match:
+            st.markdown(f"> *{quote_match.group(1).strip()}*")
         else:
-            st.warning("No quote found.")
+            st.warning("No quote found. Include a mood in your prompt for more flair!")
 
     with tabs[3]:
         st.markdown("### ❌ Analysis of the Failure")
-        failure = re.search(r"3\..*?Explain.*?\n(.*?)(4\.|Teach|5\.)", full_reply, re.DOTALL | re.IGNORECASE)
-        if failure:
-            st.markdown(failure.group(1).strip())
+        fail_match = re.search(r"3\..*?Explain.*?\n+(.*?)(\n4\.|Teach|5\.)", full_reply, re.DOTALL | re.IGNORECASE)
+        if fail_match:
+            st.markdown(fail_match.group(1).strip())
         else:
-            st.warning("Gemma didn’t break down the failure clearly.")
+            st.warning("Failure analysis missing. Try to describe what failed in your attempt.")
 
     with tabs[4]:
         st.markdown("### 📚 Rescue Lessons for Next Time")
-        lessons = re.search(r"4\..*?Teach.*?\n(.*?)(5\.|Write|6\.)", full_reply, re.DOTALL | re.IGNORECASE)
-        if lessons:
-            st.markdown(lessons.group(1).strip())
+        lessons_match = re.search(r"4\..*?Teach.*?\n+(.*?)(\n5\.|Write|6\.)", full_reply, re.DOTALL | re.IGNORECASE)
+        if lessons_match:
+            st.markdown(lessons_match.group(1).strip())
         else:
-            st.warning("No strategic lessons were extracted.")
+            st.warning("Gemma didn't generate rescue lessons this time.")
 
     with tabs[5]:
         st.markdown("### 🛠️ Tactical Tips")
-        tips = re.search(r"6\..*?List 3.*?\n(.*?)(7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-        if tips:
-            st.markdown(tips.group(1).strip())
+        tips_match = re.search(r"6\..*?List 3.*?\n+(.*?)(\n7\.|Finally|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
+        if tips_match:
+            st.markdown(tips_match.group(1).strip())
         else:
-            st.warning("Tactical tips not found.")
+            st.warning("Tips not found. Try asking for specific help in your prompt.")
 
     with tabs[6]:
         st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
@@ -142,4 +141,4 @@ PRINCE said: "{user_input}"
             else:
                 st.warning("Could not extract values for the chart.")
         else:
-            st.warning("Gemma didn't include a weaknesses chart.")
+            st.warning("Gemma didn’t provide a weaknesses chart.")
