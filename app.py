@@ -1,64 +1,50 @@
 import streamlit as st
 import requests
-import os
 import matplotlib.pyplot as plt
 import re
 import time
 
-# Load Hugging Face Token securely
-HF_TOKEN = st.secrets["HF_TOKEN"]
-model_id = "google/gemma-1.1-7b-it"
-
-# Page Setup
+# Setup
 st.set_page_config(page_title="Rescue Mastermind", layout="wide")
-st.title("Rescue Mastermind")
-st.caption("Debrief your failed mission. Get strategic, respectful AI guidance for future success.")
+st.title("👑 Rescue Mastermind")
+st.caption("AI-powered debrief and strategy refinement for heroic missions")
 
-# User Input
-user_input = st.chat_input("Describe your failed rescue attempt:")
+st.markdown("""
+Welcome, brave strategist!  
+Tell us how your last **rescue attempt** failed, and we’ll analyze your effort, guide your next move, and visualize your tactical profile.
+
+This isn't about winning — it's about **learning like a legend**.
+""")
+
+# Input
+user_input = st.chat_input("🗯️ What happened in your last rescue attempt?")
 
 if user_input:
-    with st.spinner("Analyzing your strategy..."):
-        progress = st.progress(0, text="Processing...")
-
+    with st.spinner("Consulting the scrolls of wisdom..."):
         for i in range(1, 6):
-            progress.progress(i * 20, text=f"Step {i}/5 - Refining insights...")
-            time.sleep(0.4)
+            st.progress(i * 20, text=f"Processing section {i}/5...")
+            time.sleep(0.3)
 
-        # Prompt with structured coaching
+        # Prompt template
         prompt = f"""
-You are Gemma, PRINCE's AI strategy coach. The prince just attempted a rescue that failed. You must generate a respectful and constructive mission debrief.
+You are Gemma, PRINCE's AI strategy coach. The prince just attempted a rescue that failed. Respond with a respectful, intelligent, and structured debrief.
 
-Use this exact structure:
-
+Format:
 [Summary of Attempt]
-<Acknowledge the prince’s strategy and effort. Describe what he tried, respectfully.>
-
 [Why It Failed]
-<Provide a clear, kind explanation of what didn’t work. Be honest but tactful.>
-
 [What Went Well]
-<Highlight any parts of the plan that showed courage, creativity, or progress. Encourage him.>
-
 [Strategic Improvement Plan]
-<Give 2–3 action-oriented suggestions to enhance his next rescue attempt. These should sound intelligent, realistic, and valuable.>
-
 [Recommended Rescue Idea]
-<Propose one improved plan or rescue approach he could try next time, based on his strengths. Make it clever and practical.>
-
-[Rescue Metrics]
-Format as:
-[Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
+[Rescue Metrics] — format: [Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
 
 PRINCE said: "{user_input}"
 """
 
-        # Send request
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
+        headers = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
+        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1000}}
 
         response = requests.post(
-            f"https://api-inference.huggingface.co/models/{model_id}",
+            f"https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it",
             headers=headers,
             json=data
         )
@@ -67,72 +53,58 @@ PRINCE said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
+            full_reply = f"Error: {e}\nRaw response: {response.text}"
 
-    # Format and clean response
+    # Clean output
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
-    full_reply = full_reply.replace("**", "")
-    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply)
+    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply).replace("**", "")
 
-    # Extract structured sections
+    # Extract sections
     section_titles = [
-        "Summary of Attempt",
-        "Why It Failed",
-        "What Went Well",
-        "Strategic Improvement Plan",
-        "Recommended Rescue Idea",
-        "Rescue Metrics"
+        "Summary of Attempt", "Why It Failed", "What Went Well",
+        "Strategic Improvement Plan", "Recommended Rescue Idea", "Rescue Metrics"
     ]
-    extracted_sections = {}
+    extracted = {}
     for i, title in enumerate(section_titles):
-        pattern = rf"\[{re.escape(title)}\]\s*(.*?)(?=\n\[{re.escape(section_titles[i + 1])}\]|$)" if i < len(section_titles) - 1 else rf"\[{re.escape(title)}\]\s*(.*)"
-        match = re.search(pattern, full_reply, re.DOTALL | re.IGNORECASE)
-        extracted_sections[title] = match.group(1).strip() if match else "_Not found_"
+        pattern = rf"\[{title}\](.*?)(?=\n\[|$)"
+        match = re.search(pattern, full_reply, re.DOTALL)
+        extracted[title] = match.group(1).strip() if match else "Not available."
 
-    # Tabs
-    tab_titles = [
-        "📋 Full Report", "📌 Summary", "⚠️ Why It Failed",
-        "🌟 What Went Well", "🔧 Improvement Plan",
-        "💡 Suggested Strategy", "📊 Rescue Metrics"
-    ]
-    tabs = st.tabs(tab_titles)
+    # 📖 STORY
+    st.markdown("## 📖 What the Prince Tried")
+    st.markdown(extracted["Summary of Attempt"])
 
-    with tabs[0]:
-        st.subheader("Full Generated Report")
-        st.info("Below is the full unprocessed output from the strategist.")
-        st.markdown(full_reply)
+    # ❌ FAILURE
+    st.markdown("## ❌ Why It Didn’t Work")
+    st.error(extracted["Why It Failed"])
 
-    with tabs[1]:
-        st.subheader("Summary of Attempt")
-        st.success(extracted_sections["Summary of Attempt"])
+    # 🌟 WINS
+    st.markdown("## 🌟 What Went Well")
+    st.success(extracted["What Went Well"])
 
-    with tabs[2]:
-        st.subheader("Why It Failed")
-        st.error(extracted_sections["Why It Failed"])
+    # 🔧 FIXES
+    st.markdown("## 🔧 Strategic Improvement Plan")
+    st.warning(extracted["Strategic Improvement Plan"])
 
-    with tabs[3]:
-        st.subheader("What Went Well")
-        st.success(extracted_sections["What Went Well"])
+    # 💡 SUGGESTION
+    st.markdown("## 💡 A Better Rescue Idea")
+    st.info(extracted["Recommended Rescue Idea"])
 
-    with tabs[4]:
-        st.subheader("Improvement Plan")
-        st.warning(extracted_sections["Strategic Improvement Plan"])
+    # 📊 STATS
+    st.markdown("## 📊 Rescue Metrics")
+    st.markdown(f"```\n{extracted['Rescue Metrics']}\n```")
 
-    with tabs[5]:
-        st.subheader("Recommended Rescue Idea")
-        st.info(extracted_sections["Recommended Rescue Idea"])
+    chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", extracted["Rescue Metrics"])
+    if chart_data:
+        labels, values = zip(*[(label, int(val)) for label, val in chart_data])
+        fig, ax = plt.subplots()
+        ax.barh(labels, values)
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Effectiveness (%)")
+        ax.set_title("Tactical Performance Breakdown")
+        st.pyplot(fig)
 
-    with tabs[6]:
-        st.subheader("Performance Metrics")
-        chart_section = extracted_sections["Rescue Metrics"]
-        chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", chart_section)
-        if chart_data:
-            labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
-            fig, ax = plt.subplots()
-            ax.barh(labels, values)
-            ax.set_xlim(0, 100)
-            ax.set_xlabel("Effectiveness (%)")
-            ax.set_title("Rescue Strategy Metrics")
-            st.pyplot(fig)
-        else:
-            st.info("Rescue metrics not found or malformed.")
+        st.markdown("### 🔢 Metric Table")
+        st.table({label: [val] for label, val in zip(labels, values)})
+    else:
+        st.info("No chart data found.")
