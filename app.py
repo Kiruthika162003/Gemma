@@ -4,54 +4,99 @@ import re
 import time
 import matplotlib.pyplot as plt
 
-# Secure setup
+# Secure API Setup
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-# UI Layout
+# Page Setup
 st.set_page_config(page_title="Rescue Mastermind", layout="wide")
 st.title("👑 Prince vs Dragon – Rescue Mastermind")
-st.caption("AI-powered debrief & improvement strategy for failed rescue missions")
+st.caption("AI-powered strategy breakdown for failed heroic missions")
 
 st.markdown("""
-Welcome to **Rescue Mastermind** – your AI strategist trained to guide heroic efforts.
+Welcome to **Rescue Mastermind** – an AI strategist for your rescue missions.  
+Describe your failed rescue attempt and receive:
 
-Describe how your last **rescue attempt failed**, and this app will:
-- Generate a structured report
-- Analyze why it failed
-- Offer strategy lessons
-- Suggest smart improvements
-- Visualize your tactical strengths
+- A sarcastic yet helpful failure analysis  
+- Smart lessons learned  
+- Tactical tips  
+- A performance breakdown chart
 
 ---
 
-💡 **To get the best insights**, include:
-- What you tried (e.g. “flew in on a broom”)
-- How it went wrong (e.g. “spell fizzled mid-air”)
-- Any reactions (e.g. “princess facepalmed”)
+💡 **Pro Tip:** Include details like *what you tried*, *how it failed*, and *any funny moment*.
 """)
 
-# Input
-user_input = st.chat_input("🗯️ Tell us what happened in your failed rescue attempt:")
+# ---------- HELPERS ---------- #
+
+def extract_section(text, title):
+    """Extracts a specific [Title] section from the AI's response."""
+    pattern = rf"\[{re.escape(title)}\](.*?)(?=\n\[|$)"
+    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+def display_section(title, content, display_func):
+    """Displays a section with fallback."""
+    st.markdown(f"## {title}")
+    if content:
+        display_func(content)
+    else:
+        st.info(f"No **{title.lower()}** found in this response.")
+
+def display_chart(metrics_text):
+    """Parses and displays the rescue metrics as a chart and table."""
+    st.markdown("## 📊 Rescue Metrics")
+    st.code(f"[Chart:{metrics_text}]" if metrics_text else "No metrics provided.")
+    if not metrics_text:
+        return
+
+    chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", metrics_text)
+    if chart_data:
+        labels, values = zip(*[(label, int(value)) for label, value in chart_data])
+        fig, ax = plt.subplots()
+        ax.barh(labels, values)
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Effectiveness (%)")
+        ax.set_title("Tactical Capability Breakdown")
+        st.pyplot(fig)
+
+        st.markdown("### 📋 Summary Table")
+        st.table({label: [val] for label, val in zip(labels, values)})
+    else:
+        st.warning("Chart section was found but data could not be extracted.")
+
+# ---------- INPUT ---------- #
+
+user_input = st.chat_input("🗯️ Describe your failed rescue attempt:")
 
 if user_input:
-    with st.spinner("Consulting ancient scrolls..."):
+    with st.spinner("Consulting the royal scrolls..."):
         for i in range(1, 6):
             st.progress(i * 20)
             time.sleep(0.3)
 
+        # Prompt with fixed headers
         prompt = f"""
-You are Gemma, PRINCE's AI coach. Respond ONLY with a structured, witty breakdown:
+You are Gemma, PRINCE's AI strategy coach. Respond using the following structure and headers:
 
-1. First, guess the fairytale, game level, or heroic failure this resembles. Start with: "Tale Guess: <your guess>"
-2. Then give a short epic (or ridiculous) quote to inspire PRINCE.
-3. Explain the failure with sarcasm and clarity.
-4. Teach PRINCE 2-3 smart rescue lessons.
-5. List 3 tactical improvement tips.
-6. Finally, give PRINCE's weaknesses in EXACT format:
-   [Chart: Courage=45, Timing=50, Magic Usage=35, Rescue Planning=60]
+[Fairytale Guess]
+Guess the kind of fairytale or heroic failure this resembles.
 
-DO NOT skip the chart. Always end with it.
+[Motivational Quote]
+Give a short, funny, or inspiring quote to motivate the prince.
+
+[Why It Failed]
+Explain clearly (and sarcastically) why this rescue didn’t work.
+
+[Lessons Learned]
+List 2–3 smart lessons the prince should remember.
+
+[Tactical Tips]
+Provide 3 actionable tips for future rescue success.
+
+[Rescue Metrics]
+Write exactly like this: [Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
+
 PRINCE said: "{user_input}"
 """
 
@@ -70,59 +115,26 @@ PRINCE said: "{user_input}"
         except Exception as e:
             full_reply = f"⚠️ Gemma couldn’t respond: {e}\nRaw response: {response.text}"
 
-    # Clean output
+    # ---------- CLEANING ---------- #
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
-    full_reply = full_reply.replace("**", "")
-    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply)
+    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply).replace("**", "")
 
-    # --- Display Sections ---
-    st.markdown("## 📜 Full Strategy Report")
+    # ---------- EXTRACTION ---------- #
+    fairytale = extract_section(full_reply, "Fairytale Guess")
+    quote = extract_section(full_reply, "Motivational Quote")
+    failure = extract_section(full_reply, "Why It Failed")
+    lessons = extract_section(full_reply, "Lessons Learned")
+    tips = extract_section(full_reply, "Tactical Tips")
+    metrics = extract_section(full_reply, "Rescue Metrics")
+
+    # ---------- DISPLAY ---------- #
+
+    st.markdown("## 📜 Full AI Response")
     st.markdown(full_reply)
 
-    # ❌ Why It Failed
-    st.markdown("## ❌ Why It Failed")
-    failure_match = re.search(r"(?:3\.|Explain).*?(?:failure|didn’t work).*?\n(.*?)(?:\n\d\.|Teach|Lessons|Tips|List|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-    if failure_match:
-        st.error(failure_match.group(1).strip())
-    else:
-        st.info("No failure breakdown found. Try describing exactly how the attempt failed.")
-
-    # 📚 Lessons Learned
-    st.markdown("## 📚 Lessons Learned")
-    lessons_match = re.search(r"(?:4\.|Teach).*?(lessons|Learned).*?\n(.*?)(?:\n\d\.|Tips|List|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-    if lessons_match:
-        st.success(lessons_match.group(2).strip())
-    else:
-        st.info("No lessons found. Mention what your plan was to help Gemma analyze it better.")
-
-    # 🛠️ Tactical Tips
-    st.markdown("## 🛠️ Tactical Tips")
-    tips_match = re.search(r"(?:5\.|Tips|Tactical).*?(List|Improvement).*?\n(.*?)(?:\n\d\.|Chart:)", full_reply, re.DOTALL | re.IGNORECASE)
-    if tips_match:
-        st.markdown(tips_match.group(2).strip())
-    else:
-        st.info("Tactical tips not extracted. Help by mentioning what you expected to happen.")
-
-    # 📊 Royal Stats
-    st.markdown("## 📊 Royal Stats – Tactical Metrics")
-    chart_text_match = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-    if chart_text_match:
-        chart_text = chart_text_match.group(1)
-        st.code(f"[Chart:{chart_text.strip()}]")
-        chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", chart_text)
-        if chart_data:
-            labels, values = zip(*[(label, int(val)) for label, val in chart_data])
-            fig, ax = plt.subplots()
-            ax.barh(labels, values)
-            ax.set_xlim(0, 100)
-            ax.set_xlabel("Effectiveness (%)")
-            ax.set_title("Tactical Capability Breakdown")
-            st.pyplot(fig)
-
-            # Optional Table
-            st.markdown("### 🧮 Summary Table")
-            st.table({label: [val] for label, val in zip(labels, values)})
-        else:
-            st.warning("Chart structure was found but values couldn't be extracted.")
-    else:
-        st.info("No tactical metrics were found in Gemma’s response.")
+    display_section("🧙 Fairytale Guess", fairytale, st.info)
+    display_section("💬 Motivational Quote", f"> {quote}" if quote else None, st.success)
+    display_section("❌ Why It Failed", failure, st.error)
+    display_section("📚 Lessons Learned", lessons, st.success)
+    display_section("🛠️ Tactical Tips", tips, st.warning)
+    display_chart(metrics)
