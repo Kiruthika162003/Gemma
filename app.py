@@ -5,37 +5,30 @@ import matplotlib.pyplot as plt
 import re
 import time
 
-# Load Hugging Face Token securely
+# Secure Token and Model
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
+# App Config
+st.set_page_config(page_title="Rescue Mastermind", layout="wide")
 
-st.markdown("""
-    <div style='text-align: center;'>
-        <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON: RESCUE MASTERMIND</h1>
-        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
-    </div>
-    <hr style="margin-bottom: 30px;">
-""", unsafe_allow_html=True)
+# Header
+st.title("Rescue Mastermind")
+st.caption("Strategic AI insights for your heroic missions")
 
-st.markdown("""
-> 🐉 The prince has tried for decades — swords, spells, catapults… always eaten.  
-> But what if **AI** could finally help him rescue the princess?  
-> No more charging blindly. No more failure.  
-> **Meet Prince AI Strategy Assistant** — built with Google’s **Gemma 3**.
-""")
-
-user_input = st.chat_input("PRINCE, describe how the DRAGON foiled your rescue attempt this time!")
+# User Input
+user_input = st.chat_input("Describe your failed rescue attempt:")
 
 if user_input:
-    with st.spinner("PRINCE, allow me to consult the scrolls of strategy... 🧠 Loading royal tactics..."):
-        progress = st.progress(0, text="Analyzing DRAGON's counter-strategy...")
+    with st.spinner("Analyzing strategy failure..."):
+        progress = st.progress(0, text="Gathering tactical insights...")
 
         for i in range(1, 6):
-            progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
+            progress.progress(i * 20, text=f"Processing section {i}/5...")
             time.sleep(0.5)
-prompt = f"""
+
+        # Prompt
+        prompt = f"""
 You are Gemma, PRINCE's AI strategy coach. The prince just attempted a rescue that failed. You must generate a respectful and constructive mission debrief.
 
 Use this exact structure:
@@ -62,7 +55,7 @@ Format as:
 PRINCE said: "{user_input}"
 """
 
-
+        # API Call
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
 
@@ -76,37 +69,77 @@ PRINCE said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
+            full_reply = f"Gemma could not respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean up formatting and remove prompt artifacts
+    # Clean output
     full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
-    full_reply = full_reply.replace("**", "").strip()
+    full_reply = full_reply.replace("**", "")
+    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply)
 
-    # Subtabs for clean display
-    tabs = st.tabs(["🧾 Full Response", "📖 Tale Guess", "📊 Royal Stats"])
+    # Extract sections
+    sections = {
+        "Summary of Attempt": "",
+        "Why It Failed": "",
+        "What Went Well": "",
+        "Strategic Improvement Plan": "",
+        "Recommended Rescue Idea": "",
+        "Rescue Metrics": ""
+    }
+
+    for key in sections:
+        match = re.search(rf"\[{re.escape(key)}\](.*?)(?=\n\[|$)", full_reply, re.DOTALL | re.IGNORECASE)
+        if match:
+            sections[key] = match.group(1).strip()
+
+    # Tabs
+    tabs = st.tabs([
+        "Full Report",
+        "Summary",
+        "Failure Reason",
+        "Highlights",
+        "Improvements",
+        "Suggestion",
+        "Metrics"
+    ])
 
     with tabs[0]:
+        st.subheader("Full Strategy Report")
         st.markdown(full_reply)
 
     with tabs[1]:
-        ep = re.search(r"Tale Guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if ep:
-            st.markdown(ep.group(1).strip())
+        st.subheader("Summary of Attempt")
+        st.markdown(sections["Summary of Attempt"] or "_Not available_")
 
     with tabs[2]:
-        st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
-        weakness_block = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if weakness_block:
-            chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", weakness_block.group(1))
+        st.subheader("Why It Failed")
+        st.markdown(sections["Why It Failed"] or "_Not available_")
+
+    with tabs[3]:
+        st.subheader("What Went Well")
+        st.markdown(sections["What Went Well"] or "_Not available_")
+
+    with tabs[4]:
+        st.subheader("Improvement Plan")
+        st.markdown(sections["Strategic Improvement Plan"] or "_Not available_")
+
+    with tabs[5]:
+        st.subheader("Suggested Strategy")
+        st.markdown(sections["Recommended Rescue Idea"] or "_Not available_")
+
+    with tabs[6]:
+        st.subheader("Performance Metrics")
+        chart_section = sections["Rescue Metrics"]
+        if chart_section:
+            chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", chart_section)
             if chart_data:
                 labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
                 fig, ax = plt.subplots()
                 ax.barh(labels, values)
                 ax.set_xlim(0, 100)
                 ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Rescue Strategy Breakdown")
+                ax.set_title("Rescue Performance")
                 st.pyplot(fig)
             else:
-                st.warning("Could not extract values for the chart.")
+                st.warning("Could not extract chart data.")
         else:
-            st.warning("Gemma didn't include a chart this time.")
+            st.info("Metrics were not included in the response.")
