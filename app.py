@@ -1,4 +1,3 @@
-
 import streamlit as st
 import requests
 import re
@@ -29,6 +28,8 @@ Each section provides exactly **5 key points**.
 user_input = st.chat_input("Describe your failed rescue attempt:")
 
 def extract_bullets(section_text):
+    if not section_text:
+        return ["⚠️ Section not found or empty."]
     bullets = re.findall(r"(?:[-\*]\s+|\n)(.+?)(?=\n|$)", section_text.strip())
     return bullets[:5] if bullets else [section_text.strip()]
 
@@ -39,9 +40,8 @@ def extract_section(text, section):
 
 if user_input:
     with st.spinner("Analyzing your strategy..."):
-        for i in range(1, 6):
-            st.progress(i * 20)
-            time.sleep(0.3)
+        st.progress(100)
+        time.sleep(1)
 
         prompt = f"""
 You are an elite strategy AI assistant. Analyze the PRINCE's failed rescue.
