@@ -1,70 +1,59 @@
 import streamlit as st
 import requests
+import os
+import matplotlib.pyplot as plt
 import re
 import time
-import matplotlib.pyplot as plt
 
-# Secure API Setup
+# Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-# Page Setup
-st.set_page_config(page_title="Rescue Strategy Review", layout="wide")
-st.title("🛡️ Rescue Strategy Review")
-st.caption("Assess what worked, what didn't, and how to improve — powered by AI")
+st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
 
 st.markdown("""
-This tool analyzes your failed rescue mission and delivers a precise strategic review.
+    <div style='text-align: center;'>
+        <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON: RESCUE MASTERMIND</h1>
+        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
+    </div>
+    <hr style="margin-bottom: 30px;">
+""", unsafe_allow_html=True)
 
-🟢 **What Went Well** – Strengths and positives from your effort  
-🔴 **What Didn't Work** – Weaknesses or failures in execution  
-🔧 **Improved Strategy Plan** – AI-powered upgrades to your next move  
-🗺️ **Strategic Map** – A visual breakdown of performance metrics  
-
-Each section provides exactly **5 key points**.
+st.markdown("""
+> 🐉 The prince has tried for decades — swords, spells, catapults… always eaten.  
+> But what if **AI** could finally help him rescue the princess?  
+> No more charging blindly. No more failure.  
+> **Meet Prince AI Strategy Assistant** — built with Google’s **Gemma 3**.
 """)
 
-# Input
-user_input = st.chat_input("Describe your failed rescue attempt:")
-
-def extract_bullets(section_text):
-    if not section_text or not isinstance(section_text, str):
-        return ["⚠️ Section not found or empty."]
-    bullets = re.findall(r"(?:[-\*]\s+|\n)(.+?)(?=\n|$)", section_text.strip())
-    return bullets[:5] if bullets else [section_text.strip()]
-
-def extract_section(text, section):
-    pattern = rf"\[{re.escape(section)}\](.*?)(?=\n\[|$)"
-    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-    return match.group(1).strip() if match else None
+user_input = st.chat_input("PRINCE, describe how the DRAGON foiled your rescue attempt this time!")
 
 if user_input:
-    with st.spinner("Analyzing your strategy..."):
-        st.progress(100)
-        time.sleep(1)
+    with st.spinner("PRINCE, allow me to consult the scrolls of strategy... 🧠 Loading royal tactics..."):
+        progress = st.progress(0, text="Analyzing DRAGON's counter-strategy...")
+
+        for i in range(1, 6):
+            progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
+            time.sleep(0.5)
 
         prompt = f"""
-You are an elite strategy AI assistant. Analyze the PRINCE's failed rescue.
-Respond only using the following exact format:
+You are Gemma, PRINCE's AI coach. Respond ONLY with a structured, witty breakdown:
 
-[What Went Well]
-List 5 strengths or positive aspects of the attempt.
+1. First, guess the fairytale, game level, or heroic failure this resembles. Start with: "Tale Guess: <your guess>"
+2. Then give a short epic (or ridiculous) quote to inspire PRINCE (use emojis).
+3. Explain the failure with humor, flair, and royal sarcasm.
+4. Teach PRINCE 2-3 clever rescue lessons.
+5. Write a short comic-narration of the failed rescue.
+6. List 3 tactical improvement tips.
+7. Finally, give PRINCE's weaknesses in EXACT format:
+   [Chart: Courage=45, Timing=50, Magic Usage=35, Rescue Planning=60]
 
-[What Didn't Work]
-List 5 specific problems or reasons it failed.
-
-[Improved Strategy Plan]
-List 5 clear changes the PRINCE should make for next time.
-
-[Strategic Map]
-Show this exactly like:
-[Chart: Courage=65, Timing=40, Magic=25, Planning=50]
-
+DO NOT skip the chart. Always end with it.
 PRINCE said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1000}}
+        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
 
         response = requests.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
@@ -76,48 +65,37 @@ PRINCE said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"Error: {e}\nRaw response: {response.text}"
+            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
 
-    # Clean
-    full_reply = re.sub(r"(?is)you are.*?PRINCE said: \".*?\"", "", full_reply).strip()
+    # Clean up formatting and remove prompt artifacts
+    full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
+    full_reply = full_reply.replace("**", "").strip()
 
-    # Sections
-    sections = {
-        "What Went Well": extract_bullets(extract_section(full_reply, "What Went Well")),
-        "What Didn't Work": extract_bullets(extract_section(full_reply, "What Didn't Work")),
-        "Improved Strategy Plan": extract_bullets(extract_section(full_reply, "Improved Strategy Plan")),
-        "Strategic Map": extract_section(full_reply, "Strategic Map")
-    }
+    # Subtabs for clean display
+    tabs = st.tabs(["🧾 Full Response", "📖 Tale Guess", "📊 Royal Stats"])
 
-    # Display
-    st.markdown("## 🟢 What Went Well")
-    for point in sections["What Went Well"]:
-        st.success(f"✅ {point}")
+    with tabs[0]:
+        st.markdown(full_reply)
 
-    st.markdown("## 🔴 What Didn't Work")
-    for point in sections["What Didn't Work"]:
-        st.error(f"❌ {point}")
+    with tabs[1]:
+        ep = re.search(r"Tale Guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
+        if ep:
+            st.markdown(ep.group(1).strip())
 
-    st.markdown("## 🔧 Improved Strategy Plan")
-    for point in sections["Improved Strategy Plan"]:
-        st.warning(f"🔄 {point}")
-
-    st.markdown("## 🗺️ Strategic Map")
-    chart_text = sections["Strategic Map"]
-    st.code(chart_text)
-
-    if chart_text:
-        chart_data = re.findall(r"(Courage|Timing|Magic|Planning)[\s:=]+(\d+)", chart_text)
-        if chart_data:
-            labels, values = zip(*[(label, int(value)) for label, value in chart_data])
-            fig, ax = plt.subplots()
-            ax.barh(labels, values)
-            ax.set_xlim(0, 100)
-            ax.set_xlabel("Effectiveness (%)")
-            ax.set_title("Strategic Capability Breakdown")
-            st.pyplot(fig)
-
-            st.markdown("### 📋 Score Table")
-            st.table({label: [val] for label, val in zip(labels, values)})
+    with tabs[2]:
+        st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
+        weakness_block = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
+        if weakness_block:
+            chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", weakness_block.group(1))
+            if chart_data:
+                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
+                fig, ax = plt.subplots()
+                ax.barh(labels, values)
+                ax.set_xlim(0, 100)
+                ax.set_xlabel("Effectiveness (%)")
+                ax.set_title("Rescue Strategy Breakdown")
+                st.pyplot(fig)
+            else:
+                st.warning("Could not extract values for the chart.")
         else:
-            st.warning("Could not extract chart data.")
+            st.warning("Gemma didn't include a chart this time.")
