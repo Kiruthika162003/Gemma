@@ -21,7 +21,7 @@ st.markdown("""
 
 st.markdown("""
 > 🐉 The prince has tried for decades — swords, spells, catapults… always eaten.  
-> But what if **AI** could finally help him rescue the princess?  
+> But what if **AI** could finally help him rescue the princess from Dragon?  
 > No more charging blindly. No more failure.  
 > **Meet Prince AI Strategy Assistant** — built with Google’s **Gemma 3**.
 """)
@@ -40,8 +40,8 @@ You are Gemma, PRINCE's AI strategy advisor. Your job is to respond with a profe
 
 Structure your response with these labeled sections:
 
-[Tale Guess]
-Briefly classify this as a type of story, fairytale, or mission style.
+[What prince tried]
+Explain once again.
 
 [What Went Well]
 List 5 specific strengths or aspects of the prince’s plan that were well-conceived or executed.
