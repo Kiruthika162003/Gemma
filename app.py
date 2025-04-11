@@ -80,7 +80,7 @@ PRINCE said: "{user_input}"
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean display
-    tabs = st.tabs(["🧾 Full Response", "📖 Tale Guess", "📊 Royal Stats"])
+    tabs = st.tabs(["🧾 Full Response", "📊  Stats"])
 
     with tabs[0]:
         st.markdown(full_reply)
