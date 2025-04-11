@@ -9,99 +9,62 @@ HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
 # Page Setup
-st.set_page_config(page_title="Rescue Mastermind", layout="wide")
-st.title("👑 Prince vs Dragon – Rescue Mastermind")
-st.caption("AI-powered strategy breakdown for failed heroic missions")
+st.set_page_config(page_title="Rescue Strategy Review", layout="wide")
+st.title("🛡️ Rescue Strategy Review")
+st.caption("Assess what worked, what didn't, and how to improve — powered by AI")
 
 st.markdown("""
-Welcome to **Rescue Mastermind** – an AI strategist for your rescue missions.  
-Describe your failed rescue attempt and receive:
+This tool analyzes your failed rescue mission and delivers a precise strategic review.
 
-- A sarcastic yet helpful failure analysis  
-- Smart lessons learned  
-- Tactical tips  
-- A performance breakdown chart
+🟢 **What Went Well** – Strengths and positives from your effort  
+🔴 **What Didn't Work** – Weaknesses or failures in execution  
+🔧 **Improved Strategy Plan** – AI-powered upgrades to your next move  
+🗺️ **Strategic Map** – A visual breakdown of performance metrics  
 
----
-
-💡 **Pro Tip:** Include details like *what you tried*, *how it failed*, and *any funny moment*.
+Each section provides exactly **5 key points**.
 """)
 
-# ---------- HELPERS ---------- #
+# Input
+user_input = st.chat_input("Describe your failed rescue attempt:")
 
-def extract_section(text, title):
-    """Extracts a specific [Title] section from the AI's response."""
-    pattern = rf"\[{re.escape(title)}\](.*?)(?=\n\[|$)"
+def extract_bullets(section_text):
+    if not section_text or not isinstance(section_text, str):
+        return ["⚠️ Section not found or empty."]
+    bullets = re.findall(r"(?:[-\*]\s+|\n)(.+?)(?=\n|$)", section_text.strip())
+    return bullets[:5] if bullets else [section_text.strip()]
+
+def extract_section(text, section):
+    pattern = rf"\[{re.escape(section)}\](.*?)(?=\n\[|$)"
     match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
     return match.group(1).strip() if match else None
 
-def display_section(title, content, display_func):
-    """Displays a section with fallback."""
-    st.markdown(f"## {title}")
-    if content:
-        display_func(content)
-    else:
-        st.info(f"No **{title.lower()}** found in this response.")
-
-def display_chart(metrics_text):
-    """Parses and displays the rescue metrics as a chart and table."""
-    st.markdown("## 📊 Rescue Metrics")
-    st.code(f"[Chart:{metrics_text}]" if metrics_text else "No metrics provided.")
-    if not metrics_text:
-        return
-
-    chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", metrics_text)
-    if chart_data:
-        labels, values = zip(*[(label, int(value)) for label, value in chart_data])
-        fig, ax = plt.subplots()
-        ax.barh(labels, values)
-        ax.set_xlim(0, 100)
-        ax.set_xlabel("Effectiveness (%)")
-        ax.set_title("Tactical Capability Breakdown")
-        st.pyplot(fig)
-
-        st.markdown("### 📋 Summary Table")
-        st.table({label: [val] for label, val in zip(labels, values)})
-    else:
-        st.warning("Chart section was found but data could not be extracted.")
-
-# ---------- INPUT ---------- #
-
-user_input = st.chat_input("🗯️ Describe your failed rescue attempt:")
-
 if user_input:
-    with st.spinner("Consulting the royal scrolls..."):
-        for i in range(1, 6):
-            st.progress(i * 20)
-            time.sleep(0.3)
+    with st.spinner("Analyzing your strategy..."):
+        st.progress(100)
+        time.sleep(1)
 
-        # Prompt with fixed headers
         prompt = f"""
-You are Gemma, PRINCE's AI strategy coach. Respond using the following structure and headers:
+You are an elite strategy AI assistant. Analyze the PRINCE's failed rescue.
+Respond only using the following exact format:
 
-[Fairytale Guess]
-Guess the kind of fairytale or heroic failure this resembles.
+[What Went Well]
+List 5 strengths or positive aspects of the attempt.
 
-[Motivational Quote]
-Give a short, funny, or inspiring quote to motivate the prince.
+[What Didn't Work]
+List 5 specific problems or reasons it failed.
 
-[Why It Failed]
-Explain clearly (and sarcastically) why this rescue didn’t work.
+[Improved Strategy Plan]
+List 5 clear changes the PRINCE should make for next time.
 
-[Lessons Learned]
-List 2–3 smart lessons the prince should remember.
-
-[Tactical Tips]
-Provide 3 actionable tips for future rescue success.
-
-[Rescue Metrics]
-Write exactly like this: [Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
+[Strategic Map]
+Show this exactly like:
+[Chart: Courage=65, Timing=40, Magic=25, Planning=50]
 
 PRINCE said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
+        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1000}}
 
         response = requests.post(
             f"https://api-inference.huggingface.co/models/{model_id}",
@@ -113,28 +76,48 @@ PRINCE said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond: {e}\nRaw response: {response.text}"
+            full_reply = f"Error: {e}\nRaw response: {response.text}"
 
-    # ---------- CLEANING ---------- #
-    full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
-    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply).replace("**", "")
+    # Clean
+    full_reply = re.sub(r"(?is)you are.*?PRINCE said: \".*?\"", "", full_reply).strip()
 
-    # ---------- EXTRACTION ---------- #
-    fairytale = extract_section(full_reply, "Fairytale Guess")
-    quote = extract_section(full_reply, "Motivational Quote")
-    failure = extract_section(full_reply, "Why It Failed")
-    lessons = extract_section(full_reply, "Lessons Learned")
-    tips = extract_section(full_reply, "Tactical Tips")
-    metrics = extract_section(full_reply, "Rescue Metrics")
+    # Sections
+    sections = {
+        "What Went Well": extract_bullets(extract_section(full_reply, "What Went Well")),
+        "What Didn't Work": extract_bullets(extract_section(full_reply, "What Didn't Work")),
+        "Improved Strategy Plan": extract_bullets(extract_section(full_reply, "Improved Strategy Plan")),
+        "Strategic Map": extract_section(full_reply, "Strategic Map")
+    }
 
-    # ---------- DISPLAY ---------- #
+    # Display
+    st.markdown("## 🟢 What Went Well")
+    for point in sections["What Went Well"]:
+        st.success(f"✅ {point}")
 
-    st.markdown("## 📜 Full AI Response")
-    st.markdown(full_reply)
+    st.markdown("## 🔴 What Didn't Work")
+    for point in sections["What Didn't Work"]:
+        st.error(f"❌ {point}")
 
-    display_section("🧙 Fairytale Guess", fairytale, st.info)
-    display_section("💬 Motivational Quote", f"> {quote}" if quote else None, st.success)
-    display_section("❌ Why It Failed", failure, st.error)
-    display_section("📚 Lessons Learned", lessons, st.success)
-    display_section("🛠️ Tactical Tips", tips, st.warning)
-    display_chart(metrics)
+    st.markdown("## 🔧 Improved Strategy Plan")
+    for point in sections["Improved Strategy Plan"]:
+        st.warning(f"🔄 {point}")
+
+    st.markdown("## 🗺️ Strategic Map")
+    chart_text = sections["Strategic Map"]
+    st.code(chart_text)
+
+    if chart_text:
+        chart_data = re.findall(r"(Courage|Timing|Magic|Planning)[\s:=]+(\d+)", chart_text)
+        if chart_data:
+            labels, values = zip(*[(label, int(value)) for label, value in chart_data])
+            fig, ax = plt.subplots()
+            ax.barh(labels, values)
+            ax.set_xlim(0, 100)
+            ax.set_xlabel("Effectiveness (%)")
+            ax.set_title("Strategic Capability Breakdown")
+            st.pyplot(fig)
+
+            st.markdown("### 📋 Score Table")
+            st.table({label: [val] for label, val in zip(labels, values)})
+        else:
+            st.warning("Could not extract chart data.")
