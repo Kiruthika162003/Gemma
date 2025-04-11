@@ -85,12 +85,8 @@ PRINCE said: "{user_input}"
     with tabs[0]:
         st.markdown(full_reply)
 
-    with tabs[1]:
-        ep = re.search(r"Tale Guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if ep:
-            st.markdown(ep.group(1).strip())
 
-    with tabs[2]:
+    with tabs[1]:
         st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
         weakness_block = re.search(r"Chart:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
         if weakness_block:
