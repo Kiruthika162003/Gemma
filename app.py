@@ -1,50 +1,103 @@
 import streamlit as st
 import requests
-import os
-import matplotlib.pyplot as plt
 import re
 import time
+import matplotlib.pyplot as plt
 
-# Load Hugging Face Token securely
+# Secure API Setup
 HF_TOKEN = st.secrets["HF_TOKEN"]
 model_id = "google/gemma-1.1-7b-it"
 
-st.set_page_config(page_title="CAT vs RAT: Trap Mastermind", layout="wide")
+# Page Setup
+st.set_page_config(page_title="Rescue Mastermind", layout="wide")
+st.title("👑 Prince vs Dragon – Rescue Mastermind")
+st.caption("AI-powered strategy breakdown for failed heroic missions")
 
 st.markdown("""
-    <div style='text-align: center;'>
-        <h1 style='font-family:monospace; font-size: 3em;'>🎯 CAT VS RAT: TRAP MASTERMIND</h1>
-        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma — Your comically brilliant strategy assistant</p>
-    </div>
-    <hr style="margin-botCAT: 30px;">
-""", unsafe_allow_html=True)
+Welcome to **Rescue Mastermind** – an AI strategist for your rescue missions.  
+Describe your failed rescue attempt and receive:
 
-user_input = st.chat_input("CAT, describe how RAT escaped this time!")
+- A sarcastic yet helpful failure analysis  
+- Smart lessons learned  
+- Tactical tips  
+- A performance breakdown chart
+
+---
+
+💡 **Pro Tip:** Include details like *what you tried*, *how it failed*, and *any funny moment*.
+""")
+
+# ---------- HELPERS ---------- #
+
+def extract_section(text, title):
+    """Extracts a specific [Title] section from the AI's response."""
+    pattern = rf"\[{re.escape(title)}\](.*?)(?=\n\[|$)"
+    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+def display_section(title, content, display_func):
+    """Displays a section with fallback."""
+    st.markdown(f"## {title}")
+    if content:
+        display_func(content)
+    else:
+        st.info(f"No **{title.lower()}** found in this response.")
+
+def display_chart(metrics_text):
+    """Parses and displays the rescue metrics as a chart and table."""
+    st.markdown("## 📊 Rescue Metrics")
+    st.code(f"[Chart:{metrics_text}]" if metrics_text else "No metrics provided.")
+    if not metrics_text:
+        return
+
+    chart_data = re.findall(r"(Courage|Timing|Magic Usage|Rescue Planning)[\s:=]+(\d+)", metrics_text)
+    if chart_data:
+        labels, values = zip(*[(label, int(value)) for label, value in chart_data])
+        fig, ax = plt.subplots()
+        ax.barh(labels, values)
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Effectiveness (%)")
+        ax.set_title("Tactical Capability Breakdown")
+        st.pyplot(fig)
+
+        st.markdown("### 📋 Summary Table")
+        st.table({label: [val] for label, val in zip(labels, values)})
+    else:
+        st.warning("Chart section was found but data could not be extracted.")
+
+# ---------- INPUT ---------- #
+
+user_input = st.chat_input("🗯️ Describe your failed rescue attempt:")
 
 if user_input:
-    with st.spinner("CAT, allow me to think... 🧠 Initiating tactical brainwaves..."):
-        progress = st.progress(0, text="Analyzing RAT’s escape route...")
-
+    with st.spinner("Consulting the royal scrolls..."):
         for i in range(1, 6):
-            progress.progress(i * 20, text=f"Step {i}/5 – Processing strategy layer {i}...")
-            time.sleep(0.5)
+            st.progress(i * 20)
+            time.sleep(0.3)
 
-        # Structured prompt (cheese strategy removed)
+        # Prompt with fixed headers
         prompt = f"""
-You are Gemma, CAT's AI coach. Respond ONLY with a structured, witty breakdown:
+You are Gemma, PRINCE's AI strategy coach. Respond using the following structure and headers:
 
-1. First, guess the cartoon episode or trap style this resembles. Start with: "Episode guess: <your guess>"
-2. Then provide a short funny motivational quote (use emojis).
-3. Explain the failure with sarcasm and clarity.
-4. Teach CAT 2-3 smart trap lessons.
-5. Write a short comic-narration of RAT's escape.
-6. List 3 tactical tips to improve.
-7. Finally, give CAT's weaknesses in EXACT format:
+[Fairytale Guess]
+Guess the kind of fairytale or heroic failure this resembles.
 
-[Chart: Speed=40, Stealth=55, Timing=30, Trap Quality=65]
+[Motivational Quote]
+Give a short, funny, or inspiring quote to motivate the prince.
 
-DO NOT skip the chart. Always end with it.
-CAT said: "{user_input}"
+[Why It Failed]
+Explain clearly (and sarcastically) why this rescue didn’t work.
+
+[Lessons Learned]
+List 2–3 smart lessons the prince should remember.
+
+[Tactical Tips]
+Provide 3 actionable tips for future rescue success.
+
+[Rescue Metrics]
+Write exactly like this: [Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
+
+PRINCE said: "{user_input}"
 """
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -60,37 +113,28 @@ CAT said: "{user_input}"
             result = response.json()
             full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
+            full_reply = f"⚠️ Gemma couldn’t respond: {e}\nRaw response: {response.text}"
 
-    # Clean up formatting and remove bold artifacts
-    full_reply = re.sub(r"(?is)you are gemma.*?CAT said: \".*?\"", "", full_reply).strip()
-    full_reply = full_reply.replace("**", "").strip()
+    # ---------- CLEANING ---------- #
+    full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
+    full_reply = re.sub(r"\n{3,}", "\n\n", full_reply).replace("**", "")
 
-    # Subtabs for clean sectioned layout
-    tabs = st.tabs(["🧾 Full Response", "🎬 Episode Guess","📊 Chart"])
+    # ---------- EXTRACTION ---------- #
+    fairytale = extract_section(full_reply, "Fairytale Guess")
+    quote = extract_section(full_reply, "Motivational Quote")
+    failure = extract_section(full_reply, "Why It Failed")
+    lessons = extract_section(full_reply, "Lessons Learned")
+    tips = extract_section(full_reply, "Tactical Tips")
+    metrics = extract_section(full_reply, "Rescue Metrics")
 
-    with tabs[0]:
-        st.markdown(full_reply)
+    # ---------- DISPLAY ---------- #
 
-    with tabs[1]:
-        ep = re.search(r"Episode guess:(.*?)(\n|$)", full_reply, re.IGNORECASE)
-        if ep:
-            st.markdown(ep.group(1).strip())
+    st.markdown("## 📜 Full AI Response")
+    st.markdown(full_reply)
 
-    with tabs[2]:
-        st.markdown("### 📊 Strategy Breakdown: CAT's Weaknesses")
-        weakness_block = re.search(r"Weaknesses:(.*?)(\n\n|$)", full_reply, re.IGNORECASE | re.DOTALL)
-        if weakness_block:
-            chart_data = re.findall(r"(Speed|Stealth|Timing|Trap Quality)[\s:=]+(\d+)", weakness_block.group(1))
-            if chart_data:
-                labels, values = zip(*[(label.strip(), int(value)) for label, value in chart_data])
-                fig, ax = plt.subplots()
-                ax.barh(labels, values, color='skyblue')
-                ax.set_xlim(0, 100)
-                ax.set_xlabel("Effectiveness (%)")
-                ax.set_title("Trap Efficiency Breakdown")
-                st.pyplot(fig)
-            else:
-                st.warning("Could not extract chart values from the weaknesses section.")
-        else:
-            st.warning("Gemma didn't provide a weaknesses section.")
+    display_section("🧙 Fairytale Guess", fairytale, st.info)
+    display_section("💬 Motivational Quote", f"> {quote}" if quote else None, st.success)
+    display_section("❌ Why It Failed", failure, st.error)
+    display_section("📚 Lessons Learned", lessons, st.success)
+    display_section("🛠️ Tactical Tips", tips, st.warning)
+    display_chart(metrics)
