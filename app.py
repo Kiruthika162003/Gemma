@@ -28,7 +28,7 @@ Each section provides exactly **5 key points**.
 user_input = st.chat_input("Describe your failed rescue attempt:")
 
 def extract_bullets(section_text):
-    if not section_text:
+    if not section_text or not isinstance(section_text, str):
         return ["⚠️ Section not found or empty."]
     bullets = re.findall(r"(?:[-\*]\s+|\n)(.+?)(?=\n|$)", section_text.strip())
     return bullets[:5] if bullets else [section_text.strip()]
