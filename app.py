@@ -35,22 +35,30 @@ if user_input:
         for i in range(1, 6):
             progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
             time.sleep(0.5)
+            prompt = f"""
+You are Gemma, PRINCE's AI strategy advisor. Your job is to respond with a professional and structured rescue review using the following format. Do not include jokes or comical content.
 
-        prompt = f"""
-You are Gemma, PRINCE's AI coach. Respond ONLY with a structured, witty breakdown:
+Structure your response with these labeled sections:
 
-1. First, guess the fairytale, game level, or heroic failure this resembles. Start with: "Tale Guess: <your guess>"
-2. Then give a short epic (or ridiculous) quote to inspire PRINCE (use emojis).
-3. Explain the failure with humor, flair, and royal sarcasm.
-4. Teach PRINCE 2-3 clever rescue lessons.
-5. Write a short comic-narration of the failed rescue.
-6. List 3 tactical improvement tips.
-7. Finally, give PRINCE's weaknesses in EXACT format:
-   [Chart: Courage=45, Timing=50, Magic Usage=35, Rescue Planning=60]
+[Tale Guess]
+Briefly classify this as a type of story, fairytale, or mission style.
 
-DO NOT skip the chart. Always end with it.
+[What Went Well]
+List 5 specific strengths or aspects of the prince’s plan that were well-conceived or executed.
+
+[What Didn't Work]
+List 5 specific points where the plan failed due to execution gaps, external interference, or planning errors.
+
+[Improved Strategy Plan]
+List 5 well-thought-out, realistic suggestions the prince can follow to succeed next time. Be clear and concise.
+
+[Rescue Metrics]
+Format exactly like this:
+[Chart: Courage=70, Timing=45, Magic Usage=30, Rescue Planning=55]
+
 PRINCE said: "{user_input}"
 """
+
 
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
