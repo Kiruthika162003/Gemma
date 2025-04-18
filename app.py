@@ -7,8 +7,7 @@ import time
 
 # Load Hugging Face Token securely
 HF_TOKEN = st.secrets["HF_TOKEN"]
-model_id = "google/gemma-1.1-7bit"	
-
+model_id = "google/gemma-1.1-7bit"
 st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
 
 st.markdown("""
