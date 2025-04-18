@@ -5,16 +5,16 @@ import matplotlib.pyplot as plt
 import re
 import time
 
-# Load Hugging Face Token securely
-HF_TOKEN = st.secrets["HF_TOKEN"]
-model_id = "google/gemma-1.1-7bit"
+# Load Gemini API Token securely
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+gemini_endpoint = "https://api.gemini.com/v1/strategy"  # Replace with the correct Gemini API endpoint
 
 st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
 
 st.markdown("""
     <div style='text-align: center;'>
         <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON: RESCUE MASTERMIND</h1>
-        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
+        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemini — Your heroic AI strategy assistant</p>
     </div>
     <hr style="margin-bottom: 30px;">
 """, unsafe_allow_html=True)
@@ -23,7 +23,7 @@ st.markdown("""
 > 🐉 The prince has tried for decades — swords, spells, catapults… always eaten.  
 > But what if **AI** could finally help him rescue the princess from Dragon?  
 > No more charging blindly. No more failure.  
-> **Meet Prince AI Strategy Assistant** — built with Google’s **Gemma 3**.
+> **Meet Prince AI Strategy Assistant** — built with **Gemini**.
 """)
 
 user_input = st.chat_input("PRINCE, describe how the DRAGON foiled your rescue attempt this time!")
@@ -35,8 +35,10 @@ if user_input:
         for i in range(1, 6):
             progress.progress(i * 20, text=f"Step {i}/5 – Processing wisdom layer {i}...")
             time.sleep(0.5)
-            prompt = f"""
-You are Gemma, PRINCE's AI strategy advisor. Your job is to respond with a professional and structured rescue review using the following format. Do not include jokes or comical content.
+
+        # Prepare the prompt for the Gemini API
+        prompt = f"""
+You are Gemini, PRINCE's AI strategy advisor. Your job is to respond with a professional and structured rescue review using the following format. Do not include jokes or comical content.
 
 Structure your response with these labeled sections:
 
@@ -59,24 +61,30 @@ Format exactly like this:
 PRINCE said: "{user_input}"
 """
 
-
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        data = {"inputs": prompt, "parameters": {"max_new_tokens": 1200}}
+        headers = {
+            "Authorization": f"Bearer {GEMINI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "prompt": prompt,
+            "max_tokens": 1200,  # Adjust as per Gemini API requirements
+            "temperature": 0.7   # Optional: Adjust temperature for response creativity
+        }
 
         response = requests.post(
-            f"https://api-inference.huggingface.co/models/{model_id}",
+            gemini_endpoint,
             headers=headers,
             json=data
         )
 
         try:
             result = response.json()
-            full_reply = result[0]['generated_text'] if isinstance(result, list) else str(result)
+            full_reply = result.get("response", "⚠️ Gemini didn’t respond properly.")  # Adjust based on Gemini API response structure
         except Exception as e:
-            full_reply = f"⚠️ Gemma couldn’t respond properly: {e}\nRaw response: {response.text}"
+            full_reply = f"⚠️ Gemini couldn’t respond properly: {e}\nRaw response: {response.text}"
 
     # Clean up formatting and remove prompt artifacts
-    full_reply = re.sub(r"(?is)you are gemma.*?PRINCE said: \".*?\"", "", full_reply).strip()
+    full_reply = re.sub(r"(?is)you are gemini.*?PRINCE said: \".*?\"", "", full_reply).strip()
     full_reply = full_reply.replace("**", "").strip()
 
     # Subtabs for clean display
@@ -84,7 +92,6 @@ PRINCE said: "{user_input}"
 
     with tabs[0]:
         st.markdown(full_reply)
-
 
     with tabs[1]:
         st.markdown("### 📊 Heroic Breakdown: PRINCE’s Weaknesses")
@@ -102,4 +109,4 @@ PRINCE said: "{user_input}"
             else:
                 st.warning("Could not extract values for the chart.")
         else:
-            st.warning("Gemma didn't include a chart this time.")
+            st.warning("Gemini didn't include a chart this time.")
