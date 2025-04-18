@@ -13,7 +13,7 @@ st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wid
 st.markdown("""
     <div style='text-align: center;'>
         <h1 style='font-family:monospace; font-size: 3em;'>👑 PRINCE VS DRAGON: RESCUE MASTERMIND</h1>
-        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemini 1.5 — Your heroic AI strategy assistant</p>
+        <p style='font-style: italic; font-size: 1.2em;'>Powered by Gemma 3 — Your heroic AI strategy assistant</p>
     </div>
     <hr style="margin-bottom: 30px;">
 """, unsafe_allow_html=True)
