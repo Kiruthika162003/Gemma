@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import re
 import time
 
-# Load Gemini API Token securely
+# Load Gemini API Key securely
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-gemini_endpoint = "https://api.gemini.com/v1/strategy"  # Replace with the correct Gemini API endpoint
+
+# Replace `model_id` with the specific Gemini model you want to use
+model_id = "gemini-strategy-model-1.0"  # Update model ID as per Gemini API documentation
 
 st.set_page_config(page_title="Prince vs Dragon: Rescue Mastermind", layout="wide")
 
@@ -63,16 +65,16 @@ PRINCE said: "{user_input}"
 
         headers = {
             "Authorization": f"Bearer {GEMINI_API_KEY}",
-            "Content-Type": "application/json"
+            "Model-ID": model_id  # Assuming model ID is passed as a header
         }
         data = {
             "prompt": prompt,
-            "max_tokens": 1200,  # Adjust as per Gemini API requirements
-            "temperature": 0.7   # Optional: Adjust temperature for response creativity
+            "max_tokens": 1200,  # Adjust as needed
+            "temperature": 0.7   # Adjust as needed
         }
 
         response = requests.post(
-            gemini_endpoint,
+            "https://api.gemini.com/v1/chat",  # Replace with the actual API URL if necessary
             headers=headers,
             json=data
         )
